@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd ~/Desktop/Code/drive-split && export JAVA_HOME=\\\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\\\" && ./gradlew :core:test --console=plain -q 2>&1 | tail -30; echo EXIT=$?; ...",
+  "error": "Exit code 1\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nCould not determine the dependencies of task ':core:test'.\n> Could not resolve all dependencies for configuration ':core:testRuntimeClasspath'.\n   > Failed to calculate the value of task ':core:compileTestJava' property 'javaCompiler'.\n      > Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=17, vendor=any vendor, implementation=vendor-specific} for MAC_OS on aarch64.\n     ...",
+  "timestamp": "2026-10-30T17:44:38.353Z",
+  "retry_count": 1
+}

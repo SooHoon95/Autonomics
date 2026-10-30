@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DriveSplit</string>
+    <string name="trip_channel_name">여행 기록</string>
+    <string name="trip_notification_title">여행 비용을 기록하고 있어요</string>
+</resources>
