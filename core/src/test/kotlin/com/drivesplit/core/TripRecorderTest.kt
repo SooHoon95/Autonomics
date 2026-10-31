@@ -127,4 +127,31 @@ class TripRecorderTest {
     private fun feed(recorder: TripRecorder, from: Int, to: Int, kmh: Double) {
         for (sec in from..to) recorder.onSample(VehicleSample(sec * 1_000L, kmh))
     }
+
+    @Test
+    fun pathKeepsOnlyPointsThatMovedFarEnough() {
+        val recorder = TripRecorder(setOf("a"))
+        // 위도 0.0001도 ≈ 11m. 30m 이상 움직였을 때만 남는다.
+        (0..10).forEach { i ->
+            recorder.onSample(VehicleSample(i * 1000L, 40.0, location = GeoPoint(37.0 + i * 0.0001, 127.0)))
+        }
+
+        val path = recorder.finish().single().path
+
+        assertEquals(listOf(37.0, 37.0003, 37.0006, 37.0009), path.map { Math.round(it.latitude * 10_000) / 10_000.0 })
+    }
+
+    @Test
+    fun nextSegmentPathStartsWhereThePreviousEnded() {
+        val recorder = TripRecorder(setOf("a", "b"))
+        recorder.onSample(VehicleSample(0, 40.0, location = GeoPoint(37.0, 127.0)))
+        recorder.onSample(VehicleSample(1000, 40.0, location = GeoPoint(37.001, 127.0)))
+        recorder.changeOccupants(setOf("a"))
+        recorder.onSample(VehicleSample(2000, 40.0, location = GeoPoint(37.002, 127.0)))
+
+        val (first, second) = recorder.finish()
+
+        assertEquals(first.path.last(), second.path.first())
+        assertEquals(GeoPoint(37.002, 127.0), second.path.last())
+    }
 }

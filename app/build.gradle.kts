@@ -25,6 +25,7 @@ android {
         versionName = "0.1.0"
 
         buildConfigField("String", "OPINET_KEY", "\"${localProps.getProperty("opinet.key", "")}\"")
+        buildConfigField("String", "KAKAO_REST_KEY", "\"${localProps.getProperty("kakao.rest.key", "")}\"")
         buildConfigField("String", "SHARE_BASE_URL", "\"https://drivesplit.netlify.app/s\"")
     }
 

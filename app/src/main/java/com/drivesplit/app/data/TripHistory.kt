@@ -24,6 +24,8 @@ data class TripEntity(
     val liters: Double,
     val pricePerLiter: Double,
     val totalWon: Long,
+    /** 결과 화면을 다시 그리기 위한 TripRecord JSON. */
+    val detailJson: String? = null,
 )
 
 /** 여행별 1인 부담액. 카풀 누적 장부(P1)는 이름 기준으로 이 테이블을 합산한다. */
@@ -57,6 +59,9 @@ interface TripDao {
     @Query("SELECT * FROM trips ORDER BY endedAtMs DESC LIMIT :limit")
     fun recentTrips(limit: Int): Flow<List<TripEntity>>
 
+    @Query("SELECT * FROM trips WHERE id = :tripId")
+    suspend fun trip(tripId: Long): TripEntity?
+
     /** 1인 부담액(shares)은 외래키 CASCADE로 함께 지워진다. */
     @Query("DELETE FROM trips WHERE id = :tripId")
     suspend fun deleteTrip(tripId: Long)
@@ -65,7 +70,7 @@ interface TripDao {
     suspend fun deleteAllTrips()
 }
 
-@Database(entities = [TripEntity::class, ShareEntity::class], version = 2, exportSchema = false)
+@Database(entities = [TripEntity::class, ShareEntity::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun tripDao(): TripDao
 

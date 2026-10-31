@@ -129,67 +129,18 @@ fun DrivingScreen(state: TripState.Active, vm: MainViewModel) {
 
         dropOff?.let { id ->
             val passenger = passengers.firstOrNull { it.id == id }
-            val url = remember(state.settledShares, id) { vm.dropOffUrl(state, id) }
+            val url = remember(state.settledShares, id) { vm.personUrl(state.setup, live, id) }
             if (passenger != null && url != null) {
-                DropOffCard(
-                    name = passenger.name,
-                    amountWon = live.shares[id] ?: 0,
-                    ridden = live.segmentsRiddenBy(id),
+                PersonSettlementCard(
+                    title = "${passenger.name} 님 하차 정산",
+                    settlement = live,
+                    passengerId = id,
                     url = url,
+                    note = "이 금액으로 확정돼요. 남은 사람들 정산에는 영향을 주지 않아요.",
+                    qrCaption = "내리기 전에 찍어주세요",
+                    vm = vm,
                     onDismiss = vm::dismissDropOff,
                 )
-            }
-        }
-    }
-}
-
-/** 중간에 내리는 사람에게 그 자리에서 보여주는 정산서. 차는 정차 중이다. */
-@Composable
-private fun DropOffCard(name: String, amountWon: Long, ridden: List<SegmentCost>, url: String, onDismiss: () -> Unit) {
-    val qr = remember(url) { qrBitmap(url) }
-    Box(
-        Modifier.fillMaxSize().background(Palette.ink.copy(alpha = 0.85f)).padding(60.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Panel(Modifier.fillMaxSize()) {
-            Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(40.dp)) {
-                Column(Modifier.weight(1.2f).fillMaxHeight()) {
-                    Text("$name 님 하차 정산", style = MaterialTheme.typography.titleLarge, color = Palette.amber)
-                    Text(won(amountWon), style = MaterialTheme.typography.displayLarge)
-                    Text(
-                        "함께 탄 거리 ${km(ridden.sumOf { it.segment.distanceKm })} · 연료 ${liters(ridden.sumOf { it.fuel.liters })}",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Palette.muted,
-                    )
-                    Spacer(Modifier.height(20.dp))
-                    Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                        ridden.forEach { cost ->
-                            // 금액은 10원 단위로 맞춘 합계만 보여주고, 구간에서는 1인당 연료량을 보여준다.
-                            val people = cost.payerIds.size.coerceAtLeast(1)
-                            Text(
-                                "${km(cost.segment.distanceKm)} · ${people}명이 나눔 · 1인 ${liters(cost.fuel.liters / people)}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(vertical = 4.dp),
-                            )
-                        }
-                    }
-                    Text(
-                        "이 금액으로 확정돼요. 남은 사람들 정산에는 영향을 주지 않아요.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Palette.muted,
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    BigButton("확인", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
-                }
-                Column(Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("내리기 전에 찍어주세요", style = MaterialTheme.typography.titleLarge)
-                    Spacer(Modifier.height(16.dp))
-                    Image(
-                        bitmap = qr,
-                        contentDescription = "$name 님 정산 QR 코드",
-                        modifier = Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(12.dp)),
-                    )
-                }
             }
         }
     }

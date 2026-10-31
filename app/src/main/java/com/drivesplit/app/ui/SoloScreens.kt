@@ -84,9 +84,11 @@ fun SoloDrivingScreen(state: TripState.Active, vm: MainViewModel) {
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 // 최근 구간이 위로 오게. 마지막 구간은 아직 진행 중이다.
+                val paths = state.live.settlement.segmentCosts.map { it.segment.path }
                 report.segments.withIndex().reversed().forEach { (i, seg) ->
                     val current = i == report.segments.lastIndex
-                    SegmentBar(label = "구간 ${i + 1}" + if (current) " · 진행 중" else "", seg = seg)
+                    val title = segmentTitle(i, paths.getOrElse(i) { emptyList() }, vm, ongoing = current)
+                    SegmentBar(label = title + if (current) " 진행 중" else "", seg = seg)
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -99,12 +101,14 @@ fun SoloDrivingScreen(state: TripState.Active, vm: MainViewModel) {
 }
 
 @Composable
-fun SoloResultScreen(state: TripState.Finished, vm: MainViewModel) {
+fun SoloResultScreen(state: TripState.Finished, vm: MainViewModel, onClose: () -> Unit, closeLabel: String) {
     val report = state.figures.report
     val rated = state.setup.profile.efficiencyKmPerLiter
     val worst = report.segments.withIndex()
         .filter { it.value.scorePercent != null }
         .minByOrNull { it.value.scorePercent!! }
+    val paths = state.figures.settlement.segmentCosts.map { it.segment.path }
+    val titles = paths.mapIndexed { i, path -> segmentTitle(i, path, vm) }
 
     Row(Modifier.fillMaxSize().padding(40.dp), horizontalArrangement = Arrangement.spacedBy(40.dp)) {
         Column(Modifier.weight(1f).fillMaxHeight()) {
@@ -121,25 +125,39 @@ fun SoloResultScreen(state: TripState.Finished, vm: MainViewModel) {
                 Stat("공인 대비", report.scorePercent?.let { "$it%" } ?: "-", scoreColor(report.scorePercent), Modifier.weight(1f))
                 Stat("공회전", minutes(report.idleSeconds), Palette.text, Modifier.weight(1f))
             }
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(20.dp))
             if (worst != null) {
                 val seg = worst.value
                 Text(
-                    "구간 ${worst.index + 1}에서 효율이 가장 낮았어요. " +
+                    // 지명을 모를 때는 제목이 이미 "구간 N"이다.
+                    titles[worst.index].let { if (it.startsWith("구간 ")) "${it}에서" else "$it 구간에서" } +
+                        " 효율이 가장 낮았어요. " +
                         "평균 ${seg.avgMovingSpeedKmh.toInt()}km/h, 정차 비율 ${(seg.idleRatio * 100).toInt()}%, " +
                         "공인 연비(${kmpl(rated)}) 대비 ${seg.scorePercent}%.",
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
-            Spacer(Modifier.weight(1f))
-            BigButton("완료", onClick = vm::closeResult)
+            Spacer(Modifier.height(16.dp))
+            // 지나온 길을 효율 색으로 칠한다. 가장 비효율적인 구간에 표시를 단다.
+            RouteMap(
+                lines = paths.zip(report.segments) { path, seg -> RouteLine(path, scoreColor(seg.scorePercent)) },
+                markers = listOfNotNull(
+                    worst?.let { w ->
+                        paths[w.index].halfwayPoint()
+                            ?.let { RouteMarker(it, "${titles[w.index]} · ${w.value.scorePercent}%", scoreColor(w.value.scorePercent)) }
+                    },
+                ),
+                modifier = Modifier.weight(1f).fillMaxWidth().background(Palette.panel, RoundedCornerShape(16.dp)),
+            )
+            Spacer(Modifier.height(16.dp))
+            BigButton(closeLabel, onClick = onClose)
         }
         Panel(Modifier.weight(1f).fillMaxHeight()) {
             Text("구간별 효율", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(12.dp))
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 report.segments.forEachIndexed { i, seg ->
-                    SegmentBar(label = "구간 ${i + 1}", seg = seg, showDetail = true)
+                    SegmentBar(label = titles[i], seg = seg, showDetail = true)
                 }
             }
         }

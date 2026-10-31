@@ -15,7 +15,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
+@Serializable
 enum class TripMode {
     /** 동승자와 구간별로 연료비를 나눈다. */
     SPLIT,
@@ -24,6 +26,7 @@ enum class TripMode {
     SOLO,
 }
 
+@Serializable
 data class TripSetup(
     val mode: TripMode,
     val passengers: List<Passenger>,
@@ -33,7 +36,26 @@ data class TripSetup(
 )
 
 /** 정산과 운전 리포트는 같은 구간 데이터로 만든다. 모드에 따라 화면에서 쓰는 쪽만 다르다. */
-data class TripFigures(val settlement: Settlement, val report: DrivingReport)
+data class TripFigures(val settlement: Settlement, val report: DrivingReport) {
+    companion object {
+        fun of(setup: TripSetup, segments: List<Segment>, settledShares: Map<String, Long>) = TripFigures(
+            settlement = SettlementCalculator.settle(
+                setup.passengers, segments, setup.profile, setup.options, settledShares = settledShares,
+            ),
+            report = DrivingReport.of(segments, setup.profile, setup.options.pricePerLiter),
+        )
+    }
+}
+
+/** 지난 기록에서 결과 화면을 그대로 다시 만들 수 있게 저장하는 원본 데이터. */
+@Serializable
+data class TripRecord(
+    val setup: TripSetup,
+    val segments: List<Segment>,
+    val settledShares: Map<String, Long> = emptyMap(),
+) {
+    fun toFinished() = TripState.Finished(setup, TripFigures.of(setup, segments, settledShares), settledShares)
+}
 
 sealed interface TripState {
     data object Idle : TripState
@@ -49,7 +71,13 @@ sealed interface TripState {
         val settledShares: Map<String, Long> = emptyMap(),
     ) : TripState
 
-    data class Finished(val setup: TripSetup, val figures: TripFigures) : TripState
+    data class Finished(
+        val setup: TripSetup,
+        val figures: TripFigures,
+        val settledShares: Map<String, Long> = emptyMap(),
+    ) : TripState {
+        fun toRecord() = TripRecord(setup, figures.settlement.segmentCosts.map { it.segment }, settledShares)
+    }
 }
 
 /**
@@ -103,7 +131,7 @@ class TripSession(
         collectJob = null
         val figures = figuresOf(active.setup, current.finish())
         recorder = null
-        return TripState.Finished(active.setup, figures).also { _state.value = it }
+        return TripState.Finished(active.setup, figures, settled).also { _state.value = it }
     }
 
     fun reset() {
@@ -125,10 +153,5 @@ class TripSession(
         )
     }
 
-    private fun figuresOf(setup: TripSetup, segments: List<Segment>) = TripFigures(
-        settlement = SettlementCalculator.settle(
-            setup.passengers, segments, setup.profile, setup.options, settledShares = settled,
-        ),
-        report = DrivingReport.of(segments, setup.profile, setup.options.pricePerLiter),
-    )
+    private fun figuresOf(setup: TripSetup, segments: List<Segment>) = TripFigures.of(setup, segments, settled)
 }

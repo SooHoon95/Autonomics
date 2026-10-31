@@ -1,5 +1,7 @@
 package com.drivesplit.core
 
+import kotlinx.serialization.Serializable
+
 data class ExtraCost(
     val label: String,
     val amountWon: Long,
@@ -7,6 +9,7 @@ data class ExtraCost(
     val sharedBy: Set<String>? = null,
 )
 
+@Serializable
 data class SettlementOptions(
     val pricePerLiter: Double,
     /** false면 운전자는 분담에서 빠지고, 운전자 혼자 탄 구간만 운전자가 부담한다. */

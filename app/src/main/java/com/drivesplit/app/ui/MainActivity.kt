@@ -39,16 +39,30 @@ private val factory = viewModelFactory {
 private fun AppRoot(vm: MainViewModel = viewModel(factory = factory)) {
     val trip by vm.trip.collectAsStateWithLifecycle()
     val showSetup by vm.showSetup.collectAsStateWithLifecycle()
+    val history by vm.history.collectAsStateWithLifecycle()
 
     when (val state = trip) {
         is TripState.Active -> when (state.setup.mode) {
             TripMode.SPLIT -> DrivingScreen(state, vm)
             TripMode.SOLO -> SoloDrivingScreen(state, vm)
         }
-        is TripState.Finished -> when (state.setup.mode) {
-            TripMode.SPLIT -> ResultScreen(state, vm)
-            TripMode.SOLO -> SoloResultScreen(state, vm)
+        is TripState.Finished -> FinishedScreen(state, vm, onClose = vm::closeResult)
+        TripState.Idle -> {
+            val past = history
+            when {
+                past != null -> FinishedScreen(past, vm, onClose = vm::closeHistory, closeLabel = "닫기")
+                showSetup -> SetupScreen(vm)
+                else -> HomeScreen(vm)
+            }
         }
-        TripState.Idle -> if (showSetup) SetupScreen(vm) else HomeScreen(vm)
+    }
+}
+
+/** 방금 끝난 여행과 지난 기록이 같은 결과 화면을 쓴다. */
+@Composable
+private fun FinishedScreen(state: TripState.Finished, vm: MainViewModel, onClose: () -> Unit, closeLabel: String = "완료") {
+    when (state.setup.mode) {
+        TripMode.SPLIT -> ResultScreen(state, vm, onClose, closeLabel)
+        TripMode.SOLO -> SoloResultScreen(state, vm, onClose, closeLabel)
     }
 }

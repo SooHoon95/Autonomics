@@ -1,6 +1,7 @@
 package com.drivesplit.app.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -95,8 +96,12 @@ fun HomeScreen(vm: MainViewModel) {
             }
             LazyColumn(Modifier.weight(1f)) {
                 items(recent, key = { it.id }) { trip ->
+                    // 상세가 저장된 기록만 열 수 있다. 편집 중에는 삭제 버튼만 동작한다.
+                    val canOpen = !editing && trip.detailJson != null
                     Row(
-                        Modifier.fillMaxWidth().padding(vertical = 18.dp),
+                        Modifier.fillMaxWidth()
+                            .clickable(enabled = canOpen) { vm.openHistory(trip.id) }
+                            .padding(vertical = 18.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
@@ -109,6 +114,9 @@ fun HomeScreen(vm: MainViewModel) {
                             )
                         }
                         Text(won(trip.totalWon), style = MaterialTheme.typography.titleLarge)
+                        if (canOpen) {
+                            Text("  ›", style = MaterialTheme.typography.titleLarge, color = Palette.muted)
+                        }
                         if (editing) {
                             IconButton(onClick = { vm.deleteTrip(trip.id) }, modifier = Modifier.padding(start = 12.dp).size(64.dp)) {
                                 Icon(Icons.Default.Delete, contentDescription = "기록 삭제", tint = DeleteRed, modifier = Modifier.size(36.dp))

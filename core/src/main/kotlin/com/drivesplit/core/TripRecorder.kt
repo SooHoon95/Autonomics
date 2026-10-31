@@ -26,6 +26,7 @@ class TripRecorder(
     private var rateMissing = false
     private var levelConsumed = 0.0
     private var levelSeen = false
+    private var path = mutableListOf<GeoPoint>()
 
     // 구간을 넘어 이어지는 상태
     private var levelLow: Double? = null
@@ -61,6 +62,7 @@ class TripRecorder(
             }
         }
         sample.fuelLevelLiters?.let(::trackFuelLevel)
+        sample.location?.let(::trackLocation)
         last = sample
 
         autoSplit?.let { if (distanceKm >= it.maxSegmentKm) closeSegment() }
@@ -108,6 +110,12 @@ class TripRecorder(
         levelSeen = true
     }
 
+    /** 점이 너무 촘촘하면 메모리만 먹으므로 일정 거리 이상 움직였을 때만 남긴다. */
+    private fun trackLocation(point: GeoPoint) {
+        val prev = path.lastOrNull()
+        if (prev == null || prev.distanceMetersTo(point) >= MIN_POINT_GAP_M) path += point
+    }
+
     private fun currentSegment() = Segment(
         occupantIds = occupants,
         distanceKm = distanceKm,
@@ -115,6 +123,7 @@ class TripRecorder(
         idleSeconds = idleMs / 1000,
         fuelFromRateLiters = if (rateSeen && !rateMissing) rateLiters else null,
         fuelFromLevelLiters = if (levelSeen) levelConsumed else null,
+        path = path.toList(),
     )
 
     private fun closeSegment() {
@@ -128,11 +137,13 @@ class TripRecorder(
         rateMissing = false
         levelConsumed = 0.0
         levelSeen = false
+        path = path.lastOrNull()?.let { mutableListOf(it) } ?: mutableListOf()
     }
 
     companion object {
         const val STOP_KMH = 1.0
         const val MAX_GAP_MS = 10_000L
         const val REFUEL_JUMP_LITERS = 1.0
+        const val MIN_POINT_GAP_M = 30.0
     }
 }

@@ -8,10 +8,13 @@ import com.drivesplit.app.data.FuelType
 import com.drivesplit.app.data.ShareEntity
 import com.drivesplit.app.data.TripEntity
 import com.drivesplit.app.trip.TripMode
+import com.drivesplit.app.trip.TripRecord
 import com.drivesplit.app.trip.TripService
 import com.drivesplit.app.trip.TripSetup
 import com.drivesplit.app.trip.TripState
+import com.drivesplit.core.GeoPoint
 import com.drivesplit.core.Passenger
+import com.drivesplit.core.Settlement
 import com.drivesplit.core.SettlementOptions
 import com.drivesplit.core.ShareLink
 import com.drivesplit.core.VehicleProfile
@@ -21,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import kotlin.math.roundToInt
 
 data class SetupForm(
@@ -107,18 +111,27 @@ class MainViewModel(private val app: DriveSplitApp) : ViewModel() {
     fun showDropOff(passengerId: String) = _dropOffNotice.update { passengerId }
     fun dismissDropOff() = _dropOffNotice.update { null }
 
-    fun dropOffUrl(active: TripState.Active, passengerId: String): String? {
-        val passenger = active.setup.passengers.firstOrNull { it.id == passengerId } ?: return null
+    /** 한 사람 몫만 담은 정산 링크. 중간 하차 때와 지난 기록에서 개인별로 볼 때 쓴다. */
+    fun personUrl(setup: TripSetup, settlement: Settlement, passengerId: String): String? {
+        val passenger = setup.passengers.firstOrNull { it.id == passengerId } ?: return null
         return ShareLink.encode(
             BuildConfig.SHARE_BASE_URL,
-            ShareLink.payloadForDropOff(
-                active.live.settlement,
-                passenger,
-                active.setup.options.pricePerLiter,
-                active.setup.tossId,
-            ),
+            ShareLink.payloadForDropOff(settlement, passenger, setup.options.pricePerLiter, setup.tossId),
         )
     }
+
+    /** 최근 기록에서 연 지난 여행. 값이 있으면 홈 대신 그 결과 화면을 보여준다. */
+    private val _history = MutableStateFlow<TripState.Finished?>(null)
+    val history: StateFlow<TripState.Finished?> = _history
+
+    fun openHistory(tripId: Long) {
+        viewModelScope.launch {
+            val detail = container.database.tripDao().trip(tripId)?.detailJson ?: return@launch
+            _history.value = runCatching { json.decodeFromString(TripRecord.serializer(), detail).toFinished() }.getOrNull()
+        }
+    }
+
+    fun closeHistory() = _history.update { null }
 
     fun setHoldStop(hold: Boolean) = container.vehicle.setHoldStop(hold)
 
@@ -137,6 +150,7 @@ class MainViewModel(private val app: DriveSplitApp) : ViewModel() {
                     liters = r.totalLiters,
                     pricePerLiter = finished.setup.options.pricePerLiter,
                     totalWon = if (finished.setup.mode == TripMode.SOLO) r.costWon else s.totalWon,
+                    detailJson = json.encodeToString(TripRecord.serializer(), finished.toRecord()),
                 ),
                 finished.setup.passengers.map { p ->
                     ShareEntity(tripId = 0, name = p.name, amountWon = s.shares[p.id] ?: 0, isDriver = p.isDriver)
@@ -155,6 +169,8 @@ class MainViewModel(private val app: DriveSplitApp) : ViewModel() {
         ),
     )
 
+    suspend fun placeName(point: GeoPoint): String? = container.placeNames.nameOf(point)
+
     fun deleteTrip(tripId: Long) {
         viewModelScope.launch { container.database.tripDao().deleteTrip(tripId) }
     }
@@ -170,5 +186,6 @@ class MainViewModel(private val app: DriveSplitApp) : ViewModel() {
 
     private companion object {
         const val DRIVER_ID = "driver"
+        val json = Json { ignoreUnknownKeys = true }
     }
 }

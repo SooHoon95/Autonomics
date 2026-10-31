@@ -2,7 +2,10 @@ package com.drivesplit.app
 
 import android.app.Application
 import com.drivesplit.app.data.AppDatabase
+import com.drivesplit.app.data.DemoPlaceNames
 import com.drivesplit.app.data.FuelPriceRepository
+import com.drivesplit.app.data.KakaoPlaceNames
+import com.drivesplit.app.data.PlaceNames
 import com.drivesplit.app.trip.TripSession
 import com.drivesplit.app.vehicle.SimulatedVehicleSource
 import kotlinx.coroutines.MainScope
@@ -14,6 +17,12 @@ class AppContainer(app: Application) {
     val tripSession = TripSession(vehicle, MainScope())
     val database = AppDatabase.create(app)
     val fuelPrices = FuelPriceRepository(BuildConfig.OPINET_KEY)
+    val placeNames = PlaceNames(
+        listOfNotNull(
+            BuildConfig.KAKAO_REST_KEY.takeIf { it.isNotBlank() }?.let(::KakaoPlaceNames),
+            DemoPlaceNames,
+        ),
+    )
 }
 
 class DriveSplitApp : Application() {

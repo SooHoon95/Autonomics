@@ -15,6 +15,7 @@ import kotlin.math.sin
  * 시연용 가상 주행. 실제 시간보다 [timeScale]배 빠르게 시내 → 고속도로 → 국도를 반복한다.
  * 속도·가속에 따라 연비가 달라지게 만들어 구간별 효율 차이가 보이게 한다.
  * [holdStop]을 켜면 감속해 정차하고, 끄면 다시 출발한다.
+ * 위치는 강남 → 경부고속도로 → 대전 경로를 달린 거리만큼 따라가고, 끝에 닿으면 되돌아온다.
  */
 class SimulatedVehicleSource(
     private val timeScale: Int = 30,
@@ -33,6 +34,7 @@ class SimulatedVehicleSource(
         var simMs = 0L
         var speed = 0.0
         var fuel = startFuelLiters
+        var traveledKm = 0.0
         val stepMs = TICK_MS * timeScale
         while (true) {
             val target = if (_holdStop.value) 0.0 else cruiseSpeed(simMs)
@@ -43,6 +45,7 @@ class SimulatedVehicleSource(
 
             val rate = fuelRate(speed, accel)
             fuel -= rate * stepMs / 3_600_000.0
+            traveledKm += speed * stepMs / 3_600_000.0
 
             emit(
                 VehicleSample(
@@ -52,6 +55,7 @@ class SimulatedVehicleSource(
                     // 실차 센서처럼 연료량은 0.1L 단위로만 보고한다.
                     fuelLevelLiters = Math.floor(fuel * 10) / 10,
                     fuelRateLitersPerHour = rate,
+                    location = DemoRoute.pointAt(traveledKm),
                 ),
             )
             simMs += stepMs
