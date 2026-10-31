@@ -1,6 +1,8 @@
 package com.drivesplit.app.trip
 
 import com.drivesplit.app.vehicle.VehicleDataSource
+import com.drivesplit.core.AutoSplit
+import com.drivesplit.core.DrivingReport
 import com.drivesplit.core.Passenger
 import com.drivesplit.core.Segment
 import com.drivesplit.core.Settlement
@@ -14,12 +16,24 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+enum class TripMode {
+    /** 동승자와 구간별로 연료비를 나눈다. */
+    SPLIT,
+
+    /** 혼자 운전: 실제 연비와 구간별 운전 효율을 본다. */
+    SOLO,
+}
+
 data class TripSetup(
+    val mode: TripMode,
     val passengers: List<Passenger>,
     val profile: VehicleProfile,
     val options: SettlementOptions,
     val tossId: String?,
 )
+
+/** 정산과 운전 리포트는 같은 구간 데이터로 만든다. 모드에 따라 화면에서 쓰는 쪽만 다르다. */
+data class TripFigures(val settlement: Settlement, val report: DrivingReport)
 
 sealed interface TripState {
     data object Idle : TripState
@@ -29,11 +43,13 @@ sealed interface TripState {
         val occupantIds: Set<String>,
         val speedKmh: Double,
         val isStopped: Boolean,
-        /** 진행 중인 구간까지 반영한 실시간 정산. */
-        val live: Settlement,
+        /** 진행 중인 구간까지 반영한 실시간 값. */
+        val live: TripFigures,
+        /** 중간에 내려서 정산을 끝낸 사람과 확정 금액. */
+        val settledShares: Map<String, Long> = emptyMap(),
     ) : TripState
 
-    data class Finished(val setup: TripSetup, val settlement: Settlement) : TripState
+    data class Finished(val setup: TripSetup, val figures: TripFigures) : TripState
 }
 
 /**
@@ -49,11 +65,14 @@ class TripSession(
 
     private var recorder: TripRecorder? = null
     private var collectJob: Job? = null
+    private var settled: Map<String, Long> = emptyMap()
 
     fun start(setup: TripSetup) {
         val everyone = setup.passengers.map { it.id }.toSet()
-        val newRecorder = TripRecorder(everyone)
+        val autoSplit = if (setup.mode == TripMode.SOLO) AutoSplit() else null
+        val newRecorder = TripRecorder(everyone, autoSplit)
         recorder = newRecorder
+        settled = emptyMap()
         collectJob?.cancel()
         collectJob = mainScope.launch {
             vehicle.samples().collect { sample ->
@@ -69,7 +88,11 @@ class TripSession(
         val current = recorder ?: return
         // 주행 중 조작 제한: 정차 상태에서만 탑승 인원을 바꿀 수 있다.
         if (!current.isStopped || ids.isEmpty()) return
+        val leaving = active.occupantIds - ids
         current.changeOccupants(ids)
+        // 내린 사람은 탄 구간이 모두 끝났으므로 지금 금액을 확정한다. 다시 타면 확정을 푼다.
+        val atDropOff = figuresOf(active.setup, current.snapshot()).settlement.shares
+        settled = (settled - ids) + leaving.associateWith { atDropOff[it] ?: 0L }
         publish(active.setup, current, active.speedKmh)
     }
 
@@ -78,15 +101,16 @@ class TripSession(
         val current = recorder ?: return null
         collectJob?.cancel()
         collectJob = null
-        val settlement = settle(active.setup, current.finish())
+        val figures = figuresOf(active.setup, current.finish())
         recorder = null
-        return TripState.Finished(active.setup, settlement).also { _state.value = it }
+        return TripState.Finished(active.setup, figures).also { _state.value = it }
     }
 
     fun reset() {
         collectJob?.cancel()
         collectJob = null
         recorder = null
+        settled = emptyMap()
         _state.value = TripState.Idle
     }
 
@@ -96,10 +120,15 @@ class TripSession(
             occupantIds = recorder.currentOccupants,
             speedKmh = speedKmh,
             isStopped = recorder.isStopped,
-            live = settle(setup, recorder.snapshot()),
+            live = figuresOf(setup, recorder.snapshot()),
+            settledShares = settled,
         )
     }
 
-    private fun settle(setup: TripSetup, segments: List<Segment>) =
-        SettlementCalculator.settle(setup.passengers, segments, setup.profile, setup.options)
+    private fun figuresOf(setup: TripSetup, segments: List<Segment>) = TripFigures(
+        settlement = SettlementCalculator.settle(
+            setup.passengers, segments, setup.profile, setup.options, settledShares = settled,
+        ),
+        report = DrivingReport.of(segments, setup.profile, setup.options.pricePerLiter),
+    )
 }

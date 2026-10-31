@@ -54,3 +54,5 @@ private val wonFormat = NumberFormat.getIntegerInstance(Locale.KOREA)
 fun won(amount: Long): String = wonFormat.format(amount) + "원"
 fun km(value: Double): String = String.format(Locale.KOREA, "%.1fkm", value)
 fun liters(value: Double): String = String.format(Locale.KOREA, "%.2fL", value)
+fun kmpl(value: Double): String = String.format(Locale.KOREA, "%.1fkm/L", value)
+fun sourceLabel(measured: Boolean): String = if (measured) "(실측)" else "(추정)"

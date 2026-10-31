@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.drivesplit.app.trip.TripMode
 
 private const val MAX_RIDERS = 4
 
@@ -32,14 +33,15 @@ fun SetupScreen(vm: MainViewModel) {
 
     Column(Modifier.fillMaxSize().padding(40.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("누가 타나요?", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
+            val title = if (form.mode == TripMode.SOLO) "솔로 운전 설정" else "누가 타나요?"
+            Text(title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
             GhostButton("취소", onClick = vm::closeSetup)
             Spacer(Modifier.padding(horizontal = 8.dp))
             BigButton("출발", onClick = vm::startTrip, enabled = form.isValid)
         }
         Spacer(Modifier.height(28.dp))
         Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
-            Panel(Modifier.weight(1f).fillMaxHeight()) {
+            if (form.mode == TripMode.SPLIT) Panel(Modifier.weight(1f).fillMaxHeight()) {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Field("운전자", form.driverName) { v -> vm.updateForm { it.copy(driverName = v) } }
                     form.riders.forEachIndexed { index, name ->
@@ -62,7 +64,7 @@ fun SetupScreen(vm: MainViewModel) {
             }
             Panel(Modifier.weight(1f).fillMaxHeight()) {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Field("연비 (km/L)", form.efficiencyKmPerLiter, keyboard = KeyboardType.Decimal) { v ->
+                    Field("공인 복합 연비 (km/L) · 효율 점수 기준", form.efficiencyKmPerLiter, keyboard = KeyboardType.Decimal) { v ->
                         vm.updateForm { it.copy(efficiencyKmPerLiter = v) }
                     }
                     Field(
@@ -70,8 +72,15 @@ fun SetupScreen(vm: MainViewModel) {
                         form.pricePerLiter,
                         keyboard = KeyboardType.Number,
                     ) { v -> vm.updateForm { it.copy(pricePerLiter = v, priceIsLive = false) } }
-                    Field("운전자 토스 아이디 (송금 링크용, 선택)", form.tossId) { v -> vm.updateForm { it.copy(tossId = v) } }
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "금액은 차량 연료 센서의 실제 소모량으로 계산해요. 센서가 없을 때만 공인 연비로 추정해요.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Palette.muted,
+                    )
+                    if (form.mode == TripMode.SPLIT) {
+                        Field("운전자 토스 아이디 (송금 링크용, 선택)", form.tossId) { v -> vm.updateForm { it.copy(tossId = v) } }
+                    }
+                    if (form.mode == TripMode.SPLIT) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("운전자도 나눠 내기", style = MaterialTheme.typography.bodyLarge)
                             Text(

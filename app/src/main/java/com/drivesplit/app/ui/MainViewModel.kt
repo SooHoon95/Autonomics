@@ -7,6 +7,7 @@ import com.drivesplit.app.DriveSplitApp
 import com.drivesplit.app.data.FuelType
 import com.drivesplit.app.data.ShareEntity
 import com.drivesplit.app.data.TripEntity
+import com.drivesplit.app.trip.TripMode
 import com.drivesplit.app.trip.TripService
 import com.drivesplit.app.trip.TripSetup
 import com.drivesplit.app.trip.TripState
@@ -23,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 data class SetupForm(
+    val mode: TripMode = TripMode.SPLIT,
     val driverName: String = "운전자",
     val riders: List<String> = listOf("동승자 1", "동승자 2"),
     val efficiencyKmPerLiter: String = "12.0",
@@ -33,7 +35,7 @@ data class SetupForm(
 ) {
     val isValid: Boolean
         get() = driverName.isNotBlank() &&
-            riders.all { it.isNotBlank() } &&
+            (mode == TripMode.SOLO || riders.all { it.isNotBlank() }) &&
             (efficiencyKmPerLiter.toDoubleOrNull() ?: 0.0) > 0 &&
             (pricePerLiter.toDoubleOrNull() ?: 0.0) > 0
 }
@@ -61,17 +63,24 @@ class MainViewModel(private val app: DriveSplitApp) : ViewModel() {
         }
     }
 
-    fun openSetup() = _showSetup.update { true }
+    fun openSetup(mode: TripMode) {
+        _form.update { it.copy(mode = mode) }
+        _showSetup.value = true
+    }
     fun closeSetup() = _showSetup.update { false }
     fun updateForm(transform: (SetupForm) -> SetupForm) = _form.update(transform)
 
     fun startTrip() {
         val f = _form.value
         if (!f.isValid) return
-        val passengers = listOf(Passenger(DRIVER_ID, f.driverName.trim(), isDriver = true)) +
-            f.riders.mapIndexed { i, name -> Passenger("rider$i", name.trim()) }
+        val driver = Passenger(DRIVER_ID, f.driverName.trim(), isDriver = true)
+        val passengers = when (f.mode) {
+            TripMode.SOLO -> listOf(driver)
+            TripMode.SPLIT -> listOf(driver) + f.riders.mapIndexed { i, name -> Passenger("rider$i", name.trim()) }
+        }
         session.start(
             TripSetup(
+                mode = f.mode,
                 passengers = passengers,
                 profile = VehicleProfile(efficiencyKmPerLiter = f.efficiencyKmPerLiter.toDouble()),
                 options = SettlementOptions(pricePerLiter = f.pricePerLiter.toDouble(), driverPays = f.driverPays),
@@ -82,22 +91,52 @@ class MainViewModel(private val app: DriveSplitApp) : ViewModel() {
         _showSetup.value = false
     }
 
-    fun setOccupants(ids: Set<String>) = session.setOccupants(ids)
+    /** 방금 내린 사람. 값이 있으면 주행 화면에 그 사람의 정산 QR을 띄운다. */
+    private val _dropOffNotice = MutableStateFlow<String?>(null)
+    val dropOffNotice: StateFlow<String?> = _dropOffNotice
+
+    fun setOccupants(ids: Set<String>) {
+        val before = (trip.value as? TripState.Active)?.occupantIds ?: return
+        session.setOccupants(ids)
+        val after = (trip.value as? TripState.Active)?.occupantIds ?: return
+        (before - after).firstOrNull()?.let { _dropOffNotice.value = it }
+        // 잘못 눌러서 다시 태운 경우 띄워둔 정산서를 닫는다.
+        if (_dropOffNotice.value in after) _dropOffNotice.value = null
+    }
+
+    fun showDropOff(passengerId: String) = _dropOffNotice.update { passengerId }
+    fun dismissDropOff() = _dropOffNotice.update { null }
+
+    fun dropOffUrl(active: TripState.Active, passengerId: String): String? {
+        val passenger = active.setup.passengers.firstOrNull { it.id == passengerId } ?: return null
+        return ShareLink.encode(
+            BuildConfig.SHARE_BASE_URL,
+            ShareLink.payloadForDropOff(
+                active.live.settlement,
+                passenger,
+                active.setup.options.pricePerLiter,
+                active.setup.tossId,
+            ),
+        )
+    }
 
     fun setHoldStop(hold: Boolean) = container.vehicle.setHoldStop(hold)
 
     fun finishTrip() {
+        _dropOffNotice.value = null
         val finished = session.finish() ?: return
         TripService.stop(app)
-        val s = finished.settlement
+        val s = finished.figures.settlement
+        val r = finished.figures.report
         viewModelScope.launch {
             container.database.tripDao().insertTripWithShares(
                 TripEntity(
+                    mode = finished.setup.mode.name,
                     endedAtMs = System.currentTimeMillis(),
-                    distanceKm = s.totalDistanceKm,
-                    liters = s.totalLiters,
+                    distanceKm = r.totalKm,
+                    liters = r.totalLiters,
                     pricePerLiter = finished.setup.options.pricePerLiter,
-                    totalWon = s.totalWon,
+                    totalWon = if (finished.setup.mode == TripMode.SOLO) r.costWon else s.totalWon,
                 ),
                 finished.setup.passengers.map { p ->
                     ShareEntity(tripId = 0, name = p.name, amountWon = s.shares[p.id] ?: 0, isDriver = p.isDriver)
@@ -109,12 +148,20 @@ class MainViewModel(private val app: DriveSplitApp) : ViewModel() {
     fun shareUrl(finished: TripState.Finished): String = ShareLink.encode(
         BuildConfig.SHARE_BASE_URL,
         ShareLink.payloadOf(
-            finished.settlement,
+            finished.figures.settlement,
             finished.setup.passengers,
             finished.setup.options.pricePerLiter,
             finished.setup.tossId,
         ),
     )
+
+    fun deleteTrip(tripId: Long) {
+        viewModelScope.launch { container.database.tripDao().deleteTrip(tripId) }
+    }
+
+    fun deleteAllTrips() {
+        viewModelScope.launch { container.database.tripDao().deleteAllTrips() }
+    }
 
     fun closeResult() {
         container.vehicle.setHoldStop(false)

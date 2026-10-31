@@ -22,4 +22,23 @@ class ShareLinkTest {
         assertTrue(url.startsWith("https://example.netlify.app/s#"))
         assertEquals(payload, ShareLink.decode(url))
     }
+
+    @Test
+    fun dropOffPayloadCoversOnlySegmentsThatPersonRode() {
+        val passengers = listOf(Passenger("a", "운전자", isDriver = true), Passenger("d", "하준"))
+        val segments = listOf(
+            Segment(setOf("a", "d"), 200.0, 0, 0, fuelFromRateLiters = 20.0, fuelFromLevelLiters = null),
+            Segment(setOf("a"), 240.0, 0, 0, fuelFromRateLiters = 24.0, fuelFromLevelLiters = null),
+        )
+        val settlement = SettlementCalculator.settle(
+            passengers, segments, VehicleProfile(10.0), SettlementOptions(pricePerLiter = 1000.0),
+        )
+
+        val payload = ShareLink.payloadForDropOff(settlement, passengers[1], 1000.0, tossId = "driver01")
+
+        assertEquals(200.0, payload.distanceKm, 0.0)
+        assertEquals(20.0, payload.liters, 0.0)
+        assertEquals(10_000L, payload.totalWon)
+        assertEquals(listOf(ShareLine("하준", 10_000)), payload.people)
+    }
 }

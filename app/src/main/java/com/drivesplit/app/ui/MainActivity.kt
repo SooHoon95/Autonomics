@@ -3,9 +3,8 @@ package com.drivesplit.app.ui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -15,6 +14,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.drivesplit.app.DriveSplitApp
+import com.drivesplit.app.trip.TripMode
 import com.drivesplit.app.trip.TripState
 
 class MainActivity : ComponentActivity() {
@@ -22,7 +22,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             DriveSplitTheme {
-                Box(Modifier.fillMaxSize().background(Palette.ink)) {
+                // Surface가 기본 글자색(contentColor)을 내려줘야 색을 지정 안 한 Text도 다크 배경에서 보인다.
+                Surface(Modifier.fillMaxSize(), color = Palette.ink, contentColor = Palette.text) {
                     AppRoot()
                 }
             }
@@ -40,8 +41,14 @@ private fun AppRoot(vm: MainViewModel = viewModel(factory = factory)) {
     val showSetup by vm.showSetup.collectAsStateWithLifecycle()
 
     when (val state = trip) {
-        is TripState.Active -> DrivingScreen(state, vm)
-        is TripState.Finished -> ResultScreen(state, vm)
+        is TripState.Active -> when (state.setup.mode) {
+            TripMode.SPLIT -> DrivingScreen(state, vm)
+            TripMode.SOLO -> SoloDrivingScreen(state, vm)
+        }
+        is TripState.Finished -> when (state.setup.mode) {
+            TripMode.SPLIT -> ResultScreen(state, vm)
+            TripMode.SOLO -> SoloResultScreen(state, vm)
+        }
         TripState.Idle -> if (showSetup) SetupScreen(vm) else HomeScreen(vm)
     }
 }

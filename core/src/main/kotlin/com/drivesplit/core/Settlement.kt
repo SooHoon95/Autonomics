@@ -30,6 +30,11 @@ data class Settlement(
 ) {
     val totalDistanceKm: Double get() = segmentCosts.sumOf { it.segment.distanceKm }
     val totalLiters: Double get() = segmentCosts.sumOf { it.fuel.liters }
+    val isMeasured: Boolean get() = segmentCosts.isNotEmpty() && segmentCosts.all { it.fuel.source.isMeasured }
+    val kmPerLiter: Double? get() = if (totalLiters > 0) totalDistanceKm / totalLiters else null
+
+    /** 이 사람이 함께 탄 구간만 모은 것. 중간 하차 정산서에 쓴다. */
+    fun segmentsRiddenBy(id: String): List<SegmentCost> = segmentCosts.filter { id in it.segment.occupantIds }
 }
 
 object SettlementCalculator {
@@ -40,6 +45,8 @@ object SettlementCalculator {
         profile: VehicleProfile,
         options: SettlementOptions,
         extras: List<ExtraCost> = emptyList(),
+        /** 중간 하차로 이미 정산을 끝낸 사람의 확정 금액. 반올림을 다시 해도 바뀌지 않는다. */
+        settledShares: Map<String, Long> = emptyMap(),
     ): Settlement {
         val driverIds = passengers.filter { it.isDriver }.map { it.id }.toSet()
         val exact = passengers.associate { it.id to 0.0 }.toMutableMap()
@@ -58,7 +65,10 @@ object SettlementCalculator {
             payers.forEach { id -> exact[id] = exact.getValue(id) + extra.amountWon.toDouble() / payers.size }
         }
 
-        val shares = roundPreservingTotal(exact, options.roundingUnitWon)
+        val open = exact.filterKeys { it !in settledShares }
+        val shares = passengers.associate { it.id to 0L } +
+            roundPreservingTotal(open, options.roundingUnitWon) +
+            settledShares.filterKeys { it in exact }
         return Settlement(segmentCosts, extras, shares.values.sum(), shares)
     }
 

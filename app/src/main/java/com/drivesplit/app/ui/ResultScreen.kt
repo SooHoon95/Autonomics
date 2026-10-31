@@ -24,14 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.drivesplit.app.trip.TripState
-import com.drivesplit.core.FuelSource
 import kotlin.math.roundToLong
 
 @Composable
 fun ResultScreen(state: TripState.Finished, vm: MainViewModel) {
-    val s = state.settlement
+    val s = state.figures.settlement
     val passengers = state.setup.passengers
     val names = passengers.associate { it.id to it.name }
+    val lastSegment = s.segmentCosts.lastOrNull()?.segment?.occupantIds.orEmpty()
     val url = remember(state) { vm.shareUrl(state) }
     val qr = remember(url) { qrBitmap(url) }
 
@@ -40,7 +40,8 @@ fun ResultScreen(state: TripState.Finished, vm: MainViewModel) {
             Text("정산 완료", style = MaterialTheme.typography.titleLarge, color = Palette.amber)
             Text(won(s.totalWon), style = MaterialTheme.typography.displayLarge)
             Text(
-                "${km(s.totalDistanceKm)} · ${liters(s.totalLiters)} · 리터당 ${won(state.setup.options.pricePerLiter.roundToLong())}",
+                "${km(s.totalDistanceKm)} · 연료 ${liters(s.totalLiters)} ${sourceLabel(s.isMeasured)} · 리터당 ${won(state.setup.options.pricePerLiter.roundToLong())}" +
+                    (s.kmPerLiter?.let { " · 실제 연비 ${kmpl(it)}" } ?: ""),
                 style = MaterialTheme.typography.bodyLarge,
                 color = Palette.muted,
             )
@@ -48,7 +49,12 @@ fun ResultScreen(state: TripState.Finished, vm: MainViewModel) {
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                 passengers.forEach { p ->
                     Row(Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
-                        Text(p.name + if (p.isDriver) " (운전)" else "", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                        val tag = when {
+                            p.isDriver -> " (운전)"
+                            p.id !in lastSegment -> " · 하차 때 정산함"
+                            else -> ""
+                        }
+                        Text(p.name + tag, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
                         Text(won(s.shares[p.id] ?: 0), style = MaterialTheme.typography.titleLarge)
                     }
                     HorizontalDivider(color = Palette.line)
@@ -57,9 +63,9 @@ fun ResultScreen(state: TripState.Finished, vm: MainViewModel) {
                 Text("구간별 내역", style = MaterialTheme.typography.bodyLarge, color = Palette.muted)
                 s.segmentCosts.forEachIndexed { i, cost ->
                     val who = cost.segment.occupantIds.mapNotNull { names[it] }.joinToString(", ")
-                    val source = if (cost.fuel.source == FuelSource.MEASURED) "실측" else "추정"
+                    val source = if (cost.fuel.source.isMeasured) "실측" else "추정"
                     Text(
-                        "구간 ${i + 1} · ${km(cost.segment.distanceKm)} · ${won(cost.costWon.roundToLong())} ($source) · $who",
+                        "구간 ${i + 1} · ${km(cost.segment.distanceKm)} · ${liters(cost.fuel.liters)} $source · ${won(cost.costWon.roundToLong())} · $who",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(vertical = 6.dp),
                     )

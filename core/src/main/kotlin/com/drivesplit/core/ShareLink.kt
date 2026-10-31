@@ -40,6 +40,25 @@ object ShareLink {
             tossId = tossId?.takeIf { it.isNotBlank() },
         )
 
+    /** 중간에 내린 한 사람에게 보여줄 정산서. 그 사람이 탄 구간의 거리와 연료만 담는다. */
+    fun payloadForDropOff(
+        settlement: Settlement,
+        passenger: Passenger,
+        pricePerLiter: Double,
+        tossId: String?,
+    ): SharePayload {
+        val ridden = settlement.segmentsRiddenBy(passenger.id)
+        val amount = settlement.shares[passenger.id] ?: 0
+        return SharePayload(
+            distanceKm = Math.round(ridden.sumOf { it.segment.distanceKm } * 10) / 10.0,
+            liters = Math.round(ridden.sumOf { it.fuel.liters } * 100) / 100.0,
+            pricePerLiter = Math.round(pricePerLiter).toInt(),
+            totalWon = amount,
+            people = listOf(ShareLine(passenger.name, amount, passenger.isDriver)),
+            tossId = tossId?.takeIf { it.isNotBlank() },
+        )
+    }
+
     fun encode(baseUrl: String, payload: SharePayload): String {
         val bytes = json.encodeToString(SharePayload.serializer(), payload).toByteArray(Charsets.UTF_8)
         return "$baseUrl#" + Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
