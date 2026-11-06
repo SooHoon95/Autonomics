@@ -1,0 +1,9 @@
+#!/bin/sh
+# 커밋 전에 아키텍처·컨벤션 검사와 도메인 테스트를 돌린다. 급할 때만 git commit --no-verify.
+set -e
+ROOT="$(git rev-parse --show-toplevel)"
+python3 "$ROOT/tools/check_conventions.py"
+if git diff --cached --name-only | grep -qE '\.(kt|kts)$'; then
+  JAVA_HOME="${JAVA_HOME:-/Applications/Android Studio.app/Contents/jbr/Contents/Home}" \
+    "$ROOT/gradlew" -q -p "$ROOT" :domain:test
+fi

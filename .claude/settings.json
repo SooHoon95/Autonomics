@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat \"$CLAUDE_PROJECT_DIR/tasks/lessons.md\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/tools/check_conventions.py\" --hook",
+            "timeout": 30,
+            "statusMessage": "아키텍처·컨벤션 검사 중"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/tools/check_conventions.py\" --stop",
+            "timeout": 240,
+            "statusMessage": "완료 전 검증: 컨벤션 + 도메인 테스트"
+          }
+        ]
+      }
+    ]
+  }
+}
