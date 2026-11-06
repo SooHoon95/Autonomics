@@ -27,7 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.drivesplit.core.Settlement
+import com.drivesplit.domain.Powertrain
+import com.drivesplit.domain.Settlement
 
 /**
  * 한 사람의 정산서: 함께 탄 구간과 그 사람 몫, 그 사람만을 위한 QR.
@@ -37,6 +38,7 @@ import com.drivesplit.core.Settlement
 fun PersonSettlementCard(
     title: String,
     settlement: Settlement,
+    powertrain: Powertrain,
     passengerId: String,
     url: String,
     note: String?,
@@ -58,21 +60,21 @@ fun PersonSettlementCard(
                     Text(won(settlement.shares[passengerId] ?: 0), style = MaterialTheme.typography.displayLarge)
                     Text(
                         "함께 탄 거리 ${km(ridden.sumOf { it.value.segment.distanceKm })} · " +
-                            "내 몫 연료 ${liters(ridden.sumOf { it.value.fuel.liters / it.value.payerIds.size.coerceAtLeast(1) })}",
+                            "내 몫 ${powertrain.energyWord} ${energy(ridden.sumOf { it.value.energy.amount / it.value.payerIds.size.coerceAtLeast(1) }, powertrain)}",
                         style = MaterialTheme.typography.bodyLarge,
                         color = Palette.muted,
                     )
                     Spacer(Modifier.height(20.dp))
                     Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                         ridden.forEach { (i, cost) ->
-                            // 금액은 10원 단위로 맞춘 합계만 보여주고, 구간에서는 1인당 연료량을 보여준다.
+                            // 금액은 10원 단위로 맞춘 합계만 보여주고, 구간에서는 1인당 연료·전기량을 보여준다.
                             val people = cost.payerIds.size.coerceAtLeast(1)
                             Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Box(Modifier.size(12.dp).background(segmentColor(i), CircleShape))
                                 Spacer(Modifier.width(10.dp))
                                 Text(
                                     "${segmentTitle(i, cost.segment.path, vm)} · ${km(cost.segment.distanceKm)} · " +
-                                        "${people}명이 나눔 · 1인 ${liters(cost.fuel.liters / people)}",
+                                        "${people}명이 나눔 · 1인 ${energy(cost.energy.amount / people, powertrain)}",
                                     style = MaterialTheme.typography.bodyMedium,
                                 )
                             }

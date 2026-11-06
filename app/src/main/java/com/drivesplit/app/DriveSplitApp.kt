@@ -1,27 +1,37 @@
 package com.drivesplit.app
 
 import android.app.Application
-import com.drivesplit.app.data.AppDatabase
-import com.drivesplit.app.data.DemoPlaceNames
-import com.drivesplit.app.data.FuelPriceRepository
-import com.drivesplit.app.data.KakaoPlaceNames
-import com.drivesplit.app.data.PlaceNames
-import com.drivesplit.app.trip.TripSession
-import com.drivesplit.app.vehicle.SimulatedVehicleSource
+import com.drivesplit.app.trip.TripService
+import com.drivesplit.data.FileActiveTripStore
+import com.drivesplit.data.KakaoPlaceNames
+import com.drivesplit.data.OpinetFuelPrices
+import com.drivesplit.data.PlaceNames
+import com.drivesplit.data.RoomTripHistoryRepository
+import com.drivesplit.domain.repository.FuelPriceSource
+import com.drivesplit.domain.repository.PlaceNameResolver
+import com.drivesplit.domain.repository.PlaceRecorder
+import com.drivesplit.domain.repository.TripHistoryRepository
+import com.drivesplit.domain.repository.VehicleDataSource
+import com.drivesplit.domain.trip.TripSession
+import com.drivesplit.pleos.NaviPlaceNames
+import com.drivesplit.pleos.PleosVehicleSource
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
-/** 수동 DI 컨테이너. 의존성이 몇 개 안 돼서 Hilt 대신 여기서 직접 만든다. */
+/**
+ * 수동 DI 컨테이너. 의존성이 몇 개 안 돼서 Hilt 대신 여기서 직접 만든다.
+ * 화면은 도메인 인터페이스만 보고, 구현(:data, :pleos)은 여기서만 고른다.
+ */
 class AppContainer(app: Application) {
-    // TODO: Pleos Vehicle SDK 승인 후 실차 데이터 소스로 교체
-    val vehicle = SimulatedVehicleSource()
-    val tripSession = TripSession(vehicle, MainScope())
-    val database = AppDatabase.create(app)
-    val fuelPrices = FuelPriceRepository(BuildConfig.OPINET_KEY)
-    val placeNames = PlaceNames(
-        listOfNotNull(
-            BuildConfig.KAKAO_REST_KEY.takeIf { it.isNotBlank() }?.let(::KakaoPlaceNames),
-            DemoPlaceNames,
-        ),
+    private val naviPlaces = NaviPlaceNames()
+
+    val vehicle: VehicleDataSource = PleosVehicleSource(app, naviPlaces)
+    val tripSession = TripSession(vehicle, MainScope(), FileActiveTripStore(app))
+    val tripHistory: TripHistoryRepository = RoomTripHistoryRepository(app)
+    val fuelPrices: FuelPriceSource = OpinetFuelPrices(BuildConfig.OPINET_KEY)
+    val placeRecorder: PlaceRecorder = naviPlaces
+    val placeNames: PlaceNameResolver = PlaceNames(
+        listOfNotNull(naviPlaces, BuildConfig.KAKAO_REST_KEY.takeIf { it.isNotBlank() }?.let(::KakaoPlaceNames)),
     )
 }
 
@@ -32,5 +42,14 @@ class DriveSplitApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        // 시동을 껐다 켜서 앱이 다시 떴다면(화면을 열었든, 부팅 알림이든) 진행 중이던 여행을 이어 간다.
+        resumeTrip()
+    }
+
+    fun resumeTrip(onDone: () -> Unit = {}) {
+        MainScope().launch {
+            if (container.tripSession.resume()) TripService.start(this@DriveSplitApp)
+            onDone()
+        }
     }
 }

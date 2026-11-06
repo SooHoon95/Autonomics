@@ -14,8 +14,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.drivesplit.app.DriveSplitApp
-import com.drivesplit.app.trip.TripMode
-import com.drivesplit.app.trip.TripState
+import com.drivesplit.domain.trip.TripMode
+import com.drivesplit.domain.trip.TripState
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -10,9 +10,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // Pleos Connect SDK (Vehicle, NaviHelper)
+        maven { url = uri("https://nexus-playground.pleos.ai/repository/maven-releases/") }
     }
 }
 
 rootProject.name = "DriveSplit"
-include(":core")
+include(":domain")
+include(":data")
+include(":pleos")
 include(":app")

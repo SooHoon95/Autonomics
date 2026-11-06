@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.drivesplit.domain.Powertrain
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -53,6 +54,13 @@ private val wonFormat = NumberFormat.getIntegerInstance(Locale.KOREA)
 
 fun won(amount: Long): String = wonFormat.format(amount) + "원"
 fun km(value: Double): String = String.format(Locale.KOREA, "%.1fkm", value)
-fun liters(value: Double): String = String.format(Locale.KOREA, "%.2fL", value)
-fun kmpl(value: Double): String = String.format(Locale.KOREA, "%.1fkm/L", value)
+fun energy(value: Double, powertrain: Powertrain): String = String.format(Locale.KOREA, "%.2f%s", value, powertrain.unit)
+fun efficiency(value: Double, powertrain: Powertrain): String =
+    String.format(Locale.KOREA, "%.1fkm/%s", value, powertrain.unit)
+
+/** 휘발유차와 전기차에서 다르게 부르는 말. */
+val Powertrain.energyWord: String get() = if (this == Powertrain.ELECTRIC) "전기" else "연료"
+val Powertrain.efficiencyWord: String get() = if (this == Powertrain.ELECTRIC) "전비" else "연비"
+val Powertrain.costWord: String get() = if (this == Powertrain.ELECTRIC) "충전비" else "연료비"
+val Powertrain.perUnitWord: String get() = if (this == Powertrain.ELECTRIC) "kWh당" else "리터당"
 fun sourceLabel(measured: Boolean): String = if (measured) "(실측)" else "(추정)"

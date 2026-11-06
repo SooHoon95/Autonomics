@@ -32,14 +32,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.drivesplit.app.trip.TripState
-import com.drivesplit.core.Segment
+import com.drivesplit.domain.trip.TripState
+import com.drivesplit.domain.Segment
 import kotlin.math.roundToLong
 
 @Composable
 fun ResultScreen(state: TripState.Finished, vm: MainViewModel, onClose: () -> Unit, closeLabel: String) {
     val s = state.figures.settlement
     val passengers = state.setup.passengers
+    val powertrain = state.setup.profile.powertrain
     val names = passengers.associate { it.id to it.name }
     val url = remember(state) { vm.shareUrl(state) }
     val qr = remember(url) { qrBitmap(url) }
@@ -51,8 +52,9 @@ fun ResultScreen(state: TripState.Finished, vm: MainViewModel, onClose: () -> Un
                 Text("정산 완료", style = MaterialTheme.typography.titleLarge, color = Palette.amber)
                 Text(won(s.totalWon), style = MaterialTheme.typography.displayLarge)
                 Text(
-                    "${km(s.totalDistanceKm)} · 연료 ${liters(s.totalLiters)} ${sourceLabel(s.isMeasured)} · 리터당 ${won(state.setup.options.pricePerLiter.roundToLong())}" +
-                        (s.kmPerLiter?.let { " · 실제 연비 ${kmpl(it)}" } ?: ""),
+                    "${km(s.totalDistanceKm)} · ${powertrain.energyWord} ${energy(s.totalEnergy, powertrain)} ${sourceLabel(s.isMeasured)} · " +
+                        "${powertrain.perUnitWord} ${won(state.setup.options.pricePerUnit.roundToLong())}" +
+                        (s.kmPerUnit?.let { " · 실제 ${powertrain.efficiencyWord} ${efficiency(it, powertrain)}" } ?: ""),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Palette.muted,
                 )
@@ -81,13 +83,13 @@ fun ResultScreen(state: TripState.Finished, vm: MainViewModel, onClose: () -> Un
                     Text("구간별 내역", style = MaterialTheme.typography.bodyLarge, color = Palette.muted)
                     s.segmentCosts.forEachIndexed { i, cost ->
                         val who = cost.segment.occupantIds.mapNotNull { names[it] }.joinToString(", ")
-                        val source = if (cost.fuel.source.isMeasured) "실측" else "추정"
+                        val source = if (cost.energy.source.isMeasured) "실측" else "추정"
                         Row(Modifier.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                             // 지도 위 경로 색과 맞춘다.
                             Box(Modifier.size(14.dp).background(segmentColor(i), CircleShape))
                             Spacer(Modifier.width(10.dp))
                             Text(
-                                "${segmentTitle(i, cost.segment.path, vm)} · ${km(cost.segment.distanceKm)} · ${liters(cost.fuel.liters)} $source · ${won(cost.costWon.roundToLong())} · $who",
+                                "${segmentTitle(i, cost.segment.path, vm)} · ${km(cost.segment.distanceKm)} · ${energy(cost.energy.amount, powertrain)} $source · ${won(cost.costWon.roundToLong())} · $who",
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         }
@@ -124,6 +126,7 @@ fun ResultScreen(state: TripState.Finished, vm: MainViewModel, onClose: () -> Un
                 PersonSettlementCard(
                     title = "${person.name} 님 정산" + if (id in state.settledShares) " (하차 때 확정)" else "",
                     settlement = s,
+                    powertrain = powertrain,
                     passengerId = id,
                     url = personUrl,
                     note = null,

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>DriveSplit 정산서</title>
+<style>
+  :root {
+    --ink: #0f1115; --panel: #181b21; --line: #2a2f38; --text: #f2f3f5; --muted: #9aa1ad;
+    --amber: #ffb547; --toss: #3182f6; --kakao: #fee500; --kakao-text: #191919;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--ink); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    min-height: 100vh; padding: 24px 16px calc(32px + env(safe-area-inset-bottom));
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  .brand { color: var(--amber); font-weight: 700; font-size: 15px; letter-spacing: .02em; }
+  h1 { font-size: 22px; font-weight: 700; line-height: 1.35; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+  .amount { font-size: 40px; font-weight: 800; letter-spacing: -.02em; margin: 6px 0 2px; }
+  .muted { color: var(--muted); font-size: 14px; line-height: 1.5; }
+  .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .fact { background: var(--ink); border-radius: 10px; padding: 10px; }
+  .fact b { display: block; font-size: 15px; margin-top: 2px; }
+  .people { display: flex; flex-direction: column; gap: 8px; }
+  .person {
+    display: flex; justify-content: space-between; align-items: center; width: 100%;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; color: var(--text); font-size: 17px; text-align: left;
+  }
+  button.person { cursor: pointer; }
+  button.person:active, button.person[aria-pressed="true"] { border-color: var(--amber); }
+  .person .tag { color: var(--muted); font-size: 13px; margin-left: 6px; }
+  .btn {
+    display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%;
+    min-height: 56px; border-radius: 14px; border: 0; font-size: 17px; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+  }
+  .btn.toss { background: var(--toss); color: #fff; }
+  .btn.kakao { background: var(--kakao); color: var(--kakao-text); }
+  .btn.plain { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 600; }
+  .pay { display: flex; flex-direction: column; gap: 10px; }
+  .hidden { display: none !important; }
+  .toast {
+    position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    background: var(--text); color: var(--ink); padding: 10px 16px; border-radius: 999px; font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">DriveSplit 정산서</div>
+
+  <section id="error" class="card hidden">
+    <h1>정산서를 열 수 없어요</h1>
+    <p class="muted" style="margin-top:8px">QR 코드를 다시 찍어 주세요.</p>
+  </section>
+
+  <section id="pick" class="hidden">
+    <h1>내 이름을 눌러 주세요</h1>
+    <p class="muted" id="pickSummary" style="margin:6px 0 14px"></p>
+    <div class="people" id="people"></div>
+  </section>
+
+  <section id="bill" class="card hidden">
+    <div class="muted" id="billTitle"></div>
+    <div class="amount" id="billAmount"></div>
+    <div class="muted" id="billTo"></div>
+    <div class="facts">
+      <div class="fact"><span class="muted">거리</span><b id="factDistance"></b></div>
+      <div class="fact"><span class="muted" id="factEnergyLabel"></span><b id="factEnergy"></b></div>
+      <div class="fact"><span class="muted">단가</span><b id="factPrice"></b></div>
+    </div>
+  </section>
+
+  <section id="pay" class="pay hidden">
+    <a id="toss" class="btn toss hidden" rel="noopener">토스로 보내기</a>
+    <a id="kakao" class="btn kakao hidden" rel="noopener">카카오페이로 보내기</a>
+    <p id="kakaoNote" class="muted hidden">카카오페이에서는 금액을 직접 입력해 주세요.</p>
+    <p id="noLink" class="muted hidden">운전자가 송금 링크를 등록하지 않았어요. 금액을 복사해서 보내 주세요.</p>
+    <button id="copy" class="btn plain" type="button">금액 복사</button>
+  </section>
+
+  <section id="nothing" class="card hidden">
+    <h1>낼 금액이 없어요</h1>
+  </section>
+</main>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+// 앱이 만든 링크의 # 뒤에 정산 내용(JSON, base64url)이 들어 있다. 서버로 보내지 않고 이 화면에서만 읽는다.
+const $ = (id) => document.getElementById(id);
+const won = (n) => n.toLocaleString("ko-KR") + "원";
+
+function decode(fragment) {
+  let b64 = fragment.replace(/-/g, "+").replace(/_/g, "/");
+  while (b64.length % 4) b64 += "=";
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+function show(id) { $(id).classList.remove("hidden"); }
+
+function toast(text) {
+  const t = $("toast");
+  t.textContent = text;
+  show("toast");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => t.classList.add("hidden"), 1600);
+}
+
+function render(data) {
+  const unit = data.u || "L";
+  const driver = (data.p || []).find((p) => p.dr);
+  const riders = (data.p || []).filter((p) => !p.dr);
+  const single = data.p.length === 1;
+
+  $("factDistance").textContent = data.d.toFixed(1) + "km";
+  $("factEnergyLabel").textContent = unit === "kWh" ? "전기" : "연료";
+  $("factEnergy").textContent = data.l.toFixed(2) + unit;
+  $("factPrice").textContent = won(data.pr) + "/" + unit;
+
+  function select(person) {
+    $("billTitle").textContent = person.n + " 님이 낼 금액";
+    $("billAmount").textContent = won(person.a);
+    $("billTo").textContent = driver ? driver.n + " 님에게 보내요" : "";
+    show("bill");
+    if (person.a <= 0) {
+      ["pay"].forEach((id) => $(id).classList.add("hidden"));
+      show("nothing");
+      return;
+    }
+    $("nothing").classList.add("hidden");
+    if (data.toss) {
+      $("toss").href = "https://toss.me/" + encodeURIComponent(data.toss) + "/" + person.a;
+      $("toss").textContent = "토스로 " + won(person.a) + " 보내기";
+      show("toss");
+    }
+    if (data.kp) {
+      $("kakao").href = "https://qr.kakaopay.com/" + encodeURIComponent(data.kp);
+      show("kakao");
+      show("kakaoNote");
+    }
+    if (!data.toss && !data.kp) show("noLink");
+    $("copy").onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(String(person.a));
+        toast(won(person.a) + " 복사했어요");
+      } catch (e) {
+        toast("복사하지 못했어요. " + won(person.a));
+      }
+    };
+    show("pay");
+  }
+
+  if (single) {
+    // 중간 하차 QR: 그 사람 한 명의 정산서
+    select(data.p[0]);
+    return;
+  }
+
+  $("pickSummary").textContent = "이번 여행 " + data.d.toFixed(1) + "km · 전체 " + won(data.t);
+  data.p.forEach((person) => {
+    const row = document.createElement(person.dr ? "div" : "button");
+    row.className = "person";
+    const name = document.createElement("span");
+    name.textContent = person.n;
+    if (person.dr) {
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = "받는 사람";
+      name.appendChild(tag);
+    }
+    const amount = document.createElement("span");
+    amount.textContent = won(person.a);
+    row.append(name, amount);
+    if (!person.dr) {
+      row.type = "button";
+      row.onclick = () => {
+        document.querySelectorAll("button.person").forEach((b) => b.setAttribute("aria-pressed", "false"));
+        row.setAttribute("aria-pressed", "true");
+        select(person);
+        $("bill").scrollIntoView({ behavior: "smooth", block: "start" });
+      };
+    }
+    $("people").appendChild(row);
+  });
+  show("pick");
+  if (riders.length === 1) select(riders[0]);
+}
+
+try {
+  const fragment = location.hash.slice(1);
+  if (!fragment) throw new Error("no payload");
+  render(decode(fragment));
+} catch (e) {
+  show("error");
+}
+</script>
+</body>
+</html>

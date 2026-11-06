@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.drivesplit.core.GeoPoint
+import com.drivesplit.domain.GeoPoint
 import kotlin.math.cos
 import kotlin.math.min
 

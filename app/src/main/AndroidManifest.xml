@@ -5,10 +5,12 @@
         android:name="android.hardware.type.automotive"
         android:required="true" />
 
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 시동을 다시 켜면 진행 중이던 여행을 이어서 기록한다. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- 차량·위치·음성 권한은 :pleos, 인터넷은 :data 매니페스트에서 합쳐진다. -->
 
     <application
         android:name=".DriveSplitApp"
@@ -28,6 +30,14 @@
                 android:name="distractionOptimized"
                 android:value="true" />
         </activity>
+
+        <receiver
+            android:name=".trip.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <!-- 내비로 화면을 바꿔도 여행 기록이 끊기지 않도록 포그라운드 서비스로 유지한다. -->
         <service

@@ -37,7 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.drivesplit.app.trip.TripMode
+import com.drivesplit.domain.trip.TripMode
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -62,17 +62,17 @@ fun HomeScreen(vm: MainViewModel) {
         Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.Center) {
             Text("DriveSplit", style = MaterialTheme.typography.titleLarge, color = Palette.amber)
             Spacer(Modifier.height(12.dp))
-            Text("실제로 태운 기름만큼\n계산해요", style = MaterialTheme.typography.displayLarge.copy(fontSize = 64.sp))
+            Text("실제로 쓴 연료·전기만큼\n계산해요", style = MaterialTheme.typography.displayLarge.copy(fontSize = 64.sp))
             Spacer(Modifier.height(16.dp))
             Text(
-                "차의 연료 센서로 실제 소모량과 주행거리를 기록해요.",
+                "Pleos 차량 데이터로 실제 소모량과 주행거리를 기록해요.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Palette.muted,
             )
             Spacer(Modifier.height(40.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 ModeButton("정산 모드", "동승자와 탄 구간만큼 나누기", Modifier.weight(1f)) { vm.openSetup(TripMode.SPLIT) }
-                ModeButton("솔로 모드", "내 운전 효율과 기름값 보기", Modifier.weight(1f)) { vm.openSetup(TripMode.SOLO) }
+                ModeButton("솔로 모드", "내 운전 효율과 연료·충전비 보기", Modifier.weight(1f)) { vm.openSetup(TripMode.SOLO) }
             }
         }
         Panel(Modifier.weight(1f).fillMaxHeight()) {
@@ -97,7 +97,7 @@ fun HomeScreen(vm: MainViewModel) {
             LazyColumn(Modifier.weight(1f)) {
                 items(recent, key = { it.id }) { trip ->
                     // 상세가 저장된 기록만 열 수 있다. 편집 중에는 삭제 버튼만 동작한다.
-                    val canOpen = !editing && trip.detailJson != null
+                    val canOpen = !editing && trip.hasDetail
                     Row(
                         Modifier.fillMaxWidth()
                             .clickable(enabled = canOpen) { vm.openHistory(trip.id) }
@@ -105,10 +105,10 @@ fun HomeScreen(vm: MainViewModel) {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
-                            val modeLabel = if (trip.mode == TripMode.SOLO.name) "솔로" else "정산"
+                            val modeLabel = if (trip.mode == TripMode.SOLO) "솔로" else "정산"
                             Text("$modeLabel · ${dateFormat.format(Date(trip.endedAtMs))}", style = MaterialTheme.typography.bodyLarge)
                             Text(
-                                "${km(trip.distanceKm)} · ${liters(trip.liters)}",
+                                "${km(trip.distanceKm)} · ${energy(trip.energy, trip.powertrain)}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Palette.muted,
                             )

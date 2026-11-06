@@ -24,12 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.drivesplit.app.trip.TripState
-import com.drivesplit.core.DrivingReport
-import com.drivesplit.core.SegmentEfficiency
+import com.drivesplit.domain.trip.TripState
+import com.drivesplit.domain.DrivingReport
+import com.drivesplit.domain.Powertrain
+import com.drivesplit.domain.SegmentEfficiency
 import java.util.Locale
 
-/** 효율 막대는 공인 연비의 150%를 끝으로 잡는다. */
+/** 효율 막대는 공인 연비·전비의 150%를 끝으로 잡는다. */
 private const val BAR_MAX_PERCENT = 150f
 
 private val Bad = Color(0xFFFF6B5B)
@@ -43,9 +44,9 @@ private fun scoreColor(score: Int?): Color = when {
 
 @Composable
 fun SoloDrivingScreen(state: TripState.Active, vm: MainViewModel) {
-    val holdStop by vm.holdStop.collectAsStateWithLifecycle()
     val report = state.live.report
-    val rated = state.setup.profile.efficiencyKmPerLiter
+    val powertrain = state.setup.profile.powertrain
+    val rated = state.setup.profile.efficiencyKmPerUnit
 
     Row(Modifier.fillMaxSize().padding(40.dp), horizontalArrangement = Arrangement.spacedBy(40.dp)) {
         Column(
@@ -53,26 +54,26 @@ fun SoloDrivingScreen(state: TripState.Active, vm: MainViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            CostMeter(totalWon = report.costWon, label = "태운 기름값", modifier = Modifier.fillMaxHeight(0.78f))
+            CostMeter(totalWon = report.costWon, label = "쓴 ${powertrain.energyWord} 값", modifier = Modifier.fillMaxHeight(0.78f))
             Spacer(Modifier.height(16.dp))
             Text(
-                "${km(report.totalKm)} · ${liters(report.totalLiters)} ${sourceLabel(report.isMeasured)} · ${state.speedKmh.toInt()}km/h",
+                "${km(report.totalKm)} · ${energy(report.totalEnergy, powertrain)} ${sourceLabel(report.isMeasured)} · ${state.speedKmh.toInt()}km/h",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Palette.muted,
             )
         }
 
         Panel(Modifier.weight(1f).fillMaxHeight()) {
-            Text("실제 연비", style = MaterialTheme.typography.bodyLarge, color = Palette.muted)
+            Text("실제 ${powertrain.efficiencyWord}", style = MaterialTheme.typography.bodyLarge, color = Palette.muted)
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    report.kmPerLiter?.let { kmpl(it) } ?: "측정 중",
+                    report.kmPerUnit?.let { efficiency(it, powertrain) } ?: "측정 중",
                     style = MaterialTheme.typography.displayLarge,
                     color = scoreColor(report.scorePercent),
                 )
             }
             Text(
-                report.scorePercent?.let { "공인 ${kmpl(rated)} 대비 $it%" } ?: "조금 더 달리면 계산돼요",
+                report.scorePercent?.let { "공인 ${efficiency(rated, powertrain)} 대비 $it%" } ?: "조금 더 달리면 계산돼요",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Palette.muted,
             )
@@ -88,14 +89,11 @@ fun SoloDrivingScreen(state: TripState.Active, vm: MainViewModel) {
                 report.segments.withIndex().reversed().forEach { (i, seg) ->
                     val current = i == report.segments.lastIndex
                     val title = segmentTitle(i, paths.getOrElse(i) { emptyList() }, vm, ongoing = current)
-                    SegmentBar(label = title + if (current) " 진행 중" else "", seg = seg)
+                    SegmentBar(label = title + if (current) " 진행 중" else "", seg = seg, powertrain = powertrain)
                 }
             }
             Spacer(Modifier.height(16.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                GhostButton(if (holdStop) "출발 (시연)" else "정차 (시연)", onClick = { vm.setHoldStop(!holdStop) })
-                BigButton("운전 종료", onClick = vm::finishTrip, enabled = state.isStopped, modifier = Modifier.weight(1f))
-            }
+            BigButton("운전 종료", onClick = vm::finishTrip, enabled = state.isStopped, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -103,7 +101,8 @@ fun SoloDrivingScreen(state: TripState.Active, vm: MainViewModel) {
 @Composable
 fun SoloResultScreen(state: TripState.Finished, vm: MainViewModel, onClose: () -> Unit, closeLabel: String) {
     val report = state.figures.report
-    val rated = state.setup.profile.efficiencyKmPerLiter
+    val powertrain = state.setup.profile.powertrain
+    val rated = state.setup.profile.efficiencyKmPerUnit
     val worst = report.segments.withIndex()
         .filter { it.value.scorePercent != null }
         .minByOrNull { it.value.scorePercent!! }
@@ -115,13 +114,13 @@ fun SoloResultScreen(state: TripState.Finished, vm: MainViewModel, onClose: () -
             Text("운전 리포트", style = MaterialTheme.typography.titleLarge, color = Palette.amber)
             Text(won(report.costWon), style = MaterialTheme.typography.displayLarge)
             Text(
-                "${km(report.totalKm)} · 연료 ${liters(report.totalLiters)} ${sourceLabel(report.isMeasured)} · 리터당 ${won(state.setup.options.pricePerLiter.toLong())}",
+                "${km(report.totalKm)} · ${powertrain.energyWord} ${energy(report.totalEnergy, powertrain)} ${sourceLabel(report.isMeasured)} · ${powertrain.perUnitWord} ${won(state.setup.options.pricePerUnit.toLong())}",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Palette.muted,
             )
             Spacer(Modifier.height(32.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Stat("실제 연비", report.kmPerLiter?.let { kmpl(it) } ?: "-", scoreColor(report.scorePercent), Modifier.weight(1f))
+                Stat("실제 ${powertrain.efficiencyWord}", report.kmPerUnit?.let { efficiency(it, powertrain) } ?: "-", scoreColor(report.scorePercent), Modifier.weight(1f))
                 Stat("공인 대비", report.scorePercent?.let { "$it%" } ?: "-", scoreColor(report.scorePercent), Modifier.weight(1f))
                 Stat("공회전", minutes(report.idleSeconds), Palette.text, Modifier.weight(1f))
             }
@@ -133,7 +132,7 @@ fun SoloResultScreen(state: TripState.Finished, vm: MainViewModel, onClose: () -
                     titles[worst.index].let { if (it.startsWith("구간 ")) "${it}에서" else "$it 구간에서" } +
                         " 효율이 가장 낮았어요. " +
                         "평균 ${seg.avgMovingSpeedKmh.toInt()}km/h, 정차 비율 ${(seg.idleRatio * 100).toInt()}%, " +
-                        "공인 연비(${kmpl(rated)}) 대비 ${seg.scorePercent}%.",
+                        "공인 ${powertrain.efficiencyWord}(${efficiency(rated, powertrain)}) 대비 ${seg.scorePercent}%.",
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
@@ -157,7 +156,7 @@ fun SoloResultScreen(state: TripState.Finished, vm: MainViewModel, onClose: () -
             Spacer(Modifier.height(12.dp))
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 report.segments.forEachIndexed { i, seg ->
-                    SegmentBar(label = titles[i], seg = seg, showDetail = true)
+                    SegmentBar(label = titles[i], seg = seg, powertrain = powertrain, showDetail = true)
                 }
             }
         }
@@ -165,13 +164,13 @@ fun SoloResultScreen(state: TripState.Finished, vm: MainViewModel, onClose: () -
 }
 
 @Composable
-private fun SegmentBar(label: String, seg: SegmentEfficiency, showDetail: Boolean = false) {
+private fun SegmentBar(label: String, seg: SegmentEfficiency, powertrain: Powertrain, showDetail: Boolean = false) {
     val fraction = ((seg.scorePercent ?: 0) / BAR_MAX_PERCENT).coerceIn(0f, 1f)
     Column(Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("$label · ${km(seg.distanceKm)}", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
             Text(
-                seg.kmPerLiter?.let { kmpl(it) } ?: "-",
+                seg.kmPerUnit?.let { efficiency(it, powertrain) } ?: "-",
                 style = MaterialTheme.typography.bodyLarge,
                 color = scoreColor(seg.scorePercent),
             )
@@ -182,14 +181,14 @@ private fun SegmentBar(label: String, seg: SegmentEfficiency, showDetail: Boolea
                 Modifier.fillMaxWidth(fraction).fillMaxHeight()
                     .background(scoreColor(seg.scorePercent), RoundedCornerShape(7.dp)),
             )
-            // 공인 연비(100%) 위치 표시
+            // 공인 연비·전비(100%) 위치 표시
             Box(Modifier.fillMaxWidth(100 / BAR_MAX_PERCENT).fillMaxHeight()) {
                 Box(Modifier.align(Alignment.CenterEnd).width(2.dp).fillMaxHeight().background(Palette.text))
             }
         }
         if (showDetail) {
             Text(
-                "${liters(seg.liters)} · ${won(seg.costWon)} · 평균 ${seg.avgMovingSpeedKmh.toInt()}km/h · 정차 ${(seg.idleRatio * 100).toInt()}%",
+                "${energy(seg.energy, powertrain)} · ${won(seg.costWon)} · 평균 ${seg.avgMovingSpeedKmh.toInt()}km/h · 정차 ${(seg.idleRatio * 100).toInt()}%",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Palette.muted,
                 modifier = Modifier.padding(top = 4.dp),
