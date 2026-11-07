@@ -39,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.drivesplit.app.R
 import com.drivesplit.domain.trip.TripMode
 import com.drivesplit.domain.Powertrain
+import com.drivesplit.domain.VehicleKind
 import com.drivesplit.pleos.PleosPermissions
 import kotlinx.coroutines.delay
 
@@ -147,7 +148,6 @@ fun SetupScreen(vm: MainViewModel) {
     }
 
     val powertrain = form.powertrain
-    val unit = powertrain.unit
 
     Column(Modifier.fillMaxSize().padding(40.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -188,27 +188,29 @@ fun SetupScreen(vm: MainViewModel) {
             }
             Panel(Modifier.weight(1f).fillMaxHeight()) {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text(
-                        when {
-                            !form.powertrainDetected -> "차량 정보를 읽지 못해 휘발유차로 계산해요"
-                            powertrain == Powertrain.ELECTRIC -> "전기차로 확인했어요 · 배터리 사용량으로 계산"
-                            else -> "휘발유차로 확인했어요 · 연료 사용량으로 계산"
-                        },
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = if (form.powertrainDetected) Palette.go else Palette.muted,
-                    )
-                    Field("공인 복합 ${powertrain.efficiencyWord} (km/$unit) · 효율 점수 기준", form.efficiency, keyboard = KeyboardType.Decimal) { v ->
-                        vm.updateForm { it.copy(efficiency = v) }
+                    // 차종·공인 효율은 처음 실행 때 저장한 값을 쓴다. 여기서는 보여주고 바꾸러 가는 길만 둔다.
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(form.kind.label, style = MaterialTheme.typography.titleLarge)
+                            Text(
+                                "공인 ${efficiency(form.efficiency.toDoubleOrNull() ?: 0.0, powertrain)} · ${form.kind.priceBasis} 계산",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Palette.muted,
+                            )
+                        }
+                        GhostButton("차량 정보 바꾸기", onClick = vm::openVehicleSetup)
                     }
+                    val fuelName = if (form.kind == VehicleKind.DIESEL) "경유" else "휘발유"
                     Field(
-                        when {
-                            powertrain == Powertrain.ELECTRIC -> "충전 단가 (원/kWh) · 공용 급속 기준"
-                            form.priceIsLive -> "휘발유 가격 (원/L) · 오피넷 전국 평균"
-                            else -> "휘발유 가격 (원/L) · 기본값"
-                        },
+                        if (powertrain == Powertrain.ELECTRIC) "충전 단가 (원/kWh)" else "$fuelName 가격 (원/L)",
                         form.pricePerUnit,
                         keyboard = KeyboardType.Number,
-                    ) { v -> vm.updateForm { it.copy(pricePerUnit = v, priceIsLive = false) } }
+                    ) { v -> vm.updateForm { it.copy(pricePerUnit = v, priceIsLive = false, priceBasis = "직접 입력") } }
+                    Text(
+                        form.priceBasis,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (form.priceIsLive) Palette.go else Palette.muted,
+                    )
                     Text(
                         "금액은 Pleos 차량 데이터로 잰 실제 ${powertrain.energyWord} 사용량으로 계산해요. " +
                             "값을 못 받은 구간만 공인 ${powertrain.efficiencyWord}로 추정해요.",

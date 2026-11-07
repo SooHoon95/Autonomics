@@ -90,7 +90,8 @@ python3 tools/check_conventions.py
 ## 웹(정산 페이지)
 
 - `web/s.html`: QR로 여는 동승자 정산서. 정산 내용은 URL `#` 뒤에만 있고 서버에 저장하지 않는다.
-- Netlify 사이트 `drivesplit` (https://drivesplit.netlify.app/s). 수정하면 다시 배포해야 반영된다.
+- `netlify/functions/prices.mjs` → `/api/prices`: 오늘 유가(오피넷)와 충전 요금표를 내려준다. 앱은 오피넷을 직접 부르지 않는다(무료 한도 하루 1,500건, 키 노출). CDN이 1시간 캐시한다. 오피넷 키는 Netlify 환경 변수 `OPINET_KEY`에만 둔다. 충전 요금 고시가 바뀌면 이 함수의 `PUBLIC_FAST`만 고친다.
+- Netlify 사이트 `drivesplit` (https://drivesplit.netlify.app). 배포: `npx netlify-cli@latest deploy --prod --no-build --site 39c7a76e-537c-475a-809d-151f6db257dd` (설정은 `netlify.toml`).
 
 ## 커밋
 

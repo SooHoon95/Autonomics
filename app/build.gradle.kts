@@ -22,8 +22,9 @@ android {
         versionCode = 1
         versionName = "0.1.0"
 
-        buildConfigField("String", "OPINET_KEY", "\"${localProps.getProperty("opinet.key", "")}\"")
         buildConfigField("String", "KAKAO_REST_KEY", "\"${localProps.getProperty("kakao.rest.key", "")}\"")
+        // 정산 웹·단가 함수가 있는 Netlify 사이트. 오피넷 키는 앱이 아니라 그 사이트 환경 변수(OPINET_KEY)에 둔다.
+        buildConfigField("String", "SITE_URL", "\"https://drivesplit.netlify.app/\"")
         buildConfigField("String", "SHARE_BASE_URL", "\"https://drivesplit.netlify.app/s\"")
     }
 

@@ -141,7 +141,7 @@ class TripSession(
         collectJob?.cancel()
         collectJob = mainScope.launch {
             var samples = 0
-            vehicle.samples().collect { sample ->
+            vehicle.samples(setup.profile.powertrain).collect { sample ->
                 val now = currentSetup ?: return@collect
                 newRecorder.onSample(sample)
                 publish(now, newRecorder, sample.speedKmh)

@@ -1,0 +1,4 @@
+# 정산 웹(web/)과 단가 함수(netlify/functions/)를 drivesplit 사이트로 배포한다.
+[build]
+  publish = "web"
+  functions = "netlify/functions"

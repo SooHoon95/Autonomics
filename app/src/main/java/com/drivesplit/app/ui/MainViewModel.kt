@@ -16,7 +16,8 @@ import com.drivesplit.domain.Powertrain
 import com.drivesplit.domain.Settlement
 import com.drivesplit.domain.SettlementOptions
 import com.drivesplit.domain.ShareLink
-import com.drivesplit.domain.VehicleProfile
+import com.drivesplit.domain.VehicleInfo
+import com.drivesplit.domain.VehicleKind
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,15 +30,15 @@ data class SetupForm(
     val mode: TripMode = TripMode.SPLIT,
     val driverName: String = "운전자",
     val riders: List<String> = listOf("동승자 1", "동승자 2"),
-    /** 차량에서 읽어 정한다. 읽기 전에는 휘발유차로 둔다. */
-    val powertrain: Powertrain = Powertrain.FUEL,
-    /** 연결된 차에서 동력 방식을 확인했는지. */
-    val powertrainDetected: Boolean = false,
+    /** 저장된 차량 정보에서 채운다. */
+    val kind: VehicleKind = VehicleKind.GASOLINE,
     /** 공인 연비(km/L) 또는 전비(km/kWh). */
     val efficiency: String = DEFAULT_FUEL_EFFICIENCY,
     /** 리터당 또는 kWh당 가격. */
     val pricePerUnit: String = DEFAULT_FUEL_PRICE,
     val priceIsLive: Boolean = false,
+    /** 단가의 출처와 기준일. 출발 화면에 그대로 보여준다(예: "오피넷 전국 평균 · 11월 7일"). */
+    val priceBasis: String = "",
     val driverPays: Boolean = true,
     /** 운전자 토스 아이디 또는 toss.me 링크. */
     val tossId: String = "",
@@ -48,6 +49,8 @@ data class SetupForm(
     val tossInvalid: Boolean get() = tossId.isNotBlank() && PaymentLinks.tossIdOf(tossId) == null
     val kakaoPayInvalid: Boolean get() = kakaoPay.isNotBlank() && PaymentLinks.kakaoPayCodeOf(kakaoPay) == null
 
+    val powertrain: Powertrain get() = kind.powertrain
+
     val isValid: Boolean
         get() = driverName.isNotBlank() &&
             (mode == TripMode.SOLO || riders.all { it.isNotBlank() }) &&
@@ -57,12 +60,27 @@ data class SetupForm(
     companion object {
         const val DEFAULT_FUEL_EFFICIENCY = "12.0"
         const val DEFAULT_FUEL_PRICE = "1700"
+    }
+}
 
-        /** 중형 전기 SUV(아이오닉 5 롱레인지 2WD) 복합 전비. */
-        const val DEFAULT_ELECTRIC_EFFICIENCY = "5.0"
+/** 차량 정보 화면의 입력값. 처음 실행이면 저장하기 전까지 닫을 수 없다. */
+data class VehicleForm(
+    val kind: VehicleKind? = null,
+    val efficiency: String = "",
+    /** 차에서 짐작한 차종. 화면에 "차에서 확인했어요"로 알려준다. */
+    val detected: VehicleKind? = null,
+    val firstRun: Boolean = false,
+) {
+    val isValid: Boolean get() = kind != null && (efficiency.toDoubleOrNull() ?: 0.0) > 0
 
-        /** 환경부 공용 급속충전(100kW 이상) 요금. */
-        const val DEFAULT_ELECTRIC_PRICE = "347"
+    companion object {
+        /** 공인 효율을 모를 때 미리 채워 두는 대표값(중형차 기준). */
+        fun defaultEfficiency(kind: VehicleKind): String = when (kind) {
+            VehicleKind.GASOLINE -> "12.0"
+            VehicleKind.DIESEL -> "14.5"
+            VehicleKind.HYBRID -> "18.0"
+            VehicleKind.ELECTRIC -> "5.0"
+        }
     }
 }
 
@@ -81,35 +99,105 @@ class MainViewModel(private val app: AutonomicsApp) : ViewModel() {
     private val _showSetup = MutableStateFlow(false)
     val showSetup: StateFlow<Boolean> = _showSetup
 
+    /** 저장된 차량 정보. 아직 입력하지 않았으면 null. */
+    private val _vehicle = MutableStateFlow<VehicleInfo?>(null)
+    val vehicle: StateFlow<VehicleInfo?> = _vehicle
+
+    /** 값이 있으면 차량 정보 화면을 띄운다. */
+    private val _vehicleForm = MutableStateFlow<VehicleForm?>(null)
+    val vehicleForm: StateFlow<VehicleForm?> = _vehicleForm
+
     init {
         viewModelScope.launch {
-            when (container.vehicle.detectPowertrain()) {
-                Powertrain.ELECTRIC -> _form.update {
-                    it.copy(
-                        powertrain = Powertrain.ELECTRIC,
-                        powertrainDetected = true,
-                        efficiency = SetupForm.DEFAULT_ELECTRIC_EFFICIENCY,
-                        pricePerUnit = SetupForm.DEFAULT_ELECTRIC_PRICE,
-                        priceIsLive = false,
-                    )
-                }
-                Powertrain.FUEL -> {
-                    _form.update { it.copy(powertrainDetected = true) }
-                    loadFuelPrice()
-                }
-                null -> loadFuelPrice()
+            val saved = container.vehicleInfo.load()
+            if (saved != null) {
+                applyVehicle(saved)
+            } else {
+                // 처음 실행: 차가 알려주는 값으로 차종을 짐작해 미리 골라 둔다.
+                val detected = container.vehicle.detectKind()
+                _vehicleForm.value = VehicleForm(
+                    kind = detected,
+                    efficiency = detected?.let(VehicleForm::defaultEfficiency).orEmpty(),
+                    detected = detected,
+                    firstRun = true,
+                )
             }
         }
     }
 
-    private suspend fun loadFuelPrice() {
-        val price = container.fuelPrices.gasolineAverage()
-        _form.update { it.copy(pricePerUnit = price.wonPerLiter.roundToInt().toString(), priceIsLive = price.isLive) }
+    fun openVehicleSetup() {
+        val saved = _vehicle.value
+        viewModelScope.launch {
+            val detected = container.vehicle.detectKind()
+            _vehicleForm.value = VehicleForm(
+                kind = saved?.kind ?: detected,
+                efficiency = saved?.efficiencyKmPerUnit?.toString() ?: detected?.let(VehicleForm::defaultEfficiency).orEmpty(),
+                detected = detected,
+                firstRun = saved == null,
+            )
+        }
+    }
+
+    fun updateVehicleForm(transform: (VehicleForm) -> VehicleForm) = _vehicleForm.update { it?.let(transform) }
+
+    /** 차종을 바꾸면 그 차종의 대표 효율로 다시 채운다. 사용자가 직접 고친 값은 차종이 같을 때만 남긴다. */
+    fun selectVehicleKind(kind: VehicleKind) = updateVehicleForm {
+        if (it.kind == kind) it else it.copy(kind = kind, efficiency = VehicleForm.defaultEfficiency(kind))
+    }
+
+    fun closeVehicleSetup() = _vehicleForm.update { if (it?.firstRun == true) it else null }
+
+    fun saveVehicle() {
+        val f = _vehicleForm.value ?: return
+        val kind = f.kind ?: return
+        val efficiency = f.efficiency.toDoubleOrNull()?.takeIf { it > 0 } ?: return
+        val info = VehicleInfo(kind, efficiency)
+        _vehicleForm.value = null
+        viewModelScope.launch {
+            container.vehicleInfo.save(info)
+            applyVehicle(info)
+        }
+    }
+
+    /** 저장된 차량으로 출발 화면 기본값(효율, 단가)을 채운다. */
+    private suspend fun applyVehicle(info: VehicleInfo) {
+        _vehicle.value = info
+        _form.update { it.copy(kind = info.kind, efficiency = info.efficiencyKmPerUnit.toString()) }
+        refreshPrice()
+    }
+
+    /** 앱을 켤 때와 출발 화면을 열 때마다 오늘 단가를 다시 가져온다(하루에 한 번만 실제로 묻는다). */
+    private suspend fun refreshPrice() {
+        val kind = _vehicle.value?.kind ?: return
+        val grade = kind.fuelGrade
+        if (grade == null) {
+            val charge = container.chargePrices.publicFast()
+            _form.update {
+                it.copy(
+                    pricePerUnit = formatPrice(charge.wonPerKwh),
+                    priceIsLive = charge.isLive,
+                    priceBasis = "${charge.label} · ${charge.effectiveDate} 시행",
+                )
+            }
+        } else {
+            val price = container.fuelPrices.average(grade)
+            _form.update {
+                it.copy(
+                    pricePerUnit = price.wonPerLiter.roundToInt().toString(),
+                    priceIsLive = price.isLive,
+                    priceBasis = when (val date = price.date) {
+                        null -> "기본값 · 오피넷에서 받지 못했어요"
+                        else -> "오피넷 전국 평균 · ${prettyDate(date)} 기준" + if (price.isLive) "" else "(오늘 값을 못 받았어요)"
+                    },
+                )
+            }
+        }
     }
 
     fun openSetup(mode: TripMode) {
         _form.update { it.copy(mode = mode) }
         _showSetup.value = true
+        viewModelScope.launch { refreshPrice() }
     }
     fun closeSetup() = _showSetup.update { false }
     fun updateForm(transform: (SetupForm) -> SetupForm) = _form.update(transform)
@@ -127,7 +215,7 @@ class MainViewModel(private val app: AutonomicsApp) : ViewModel() {
             TripSetup(
                 mode = f.mode,
                 passengers = passengers,
-                profile = VehicleProfile.of(f.powertrain, f.efficiency.toDouble()),
+                profile = VehicleInfo(f.kind, f.efficiency.toDouble()).toProfile(),
                 options = SettlementOptions(pricePerUnit = f.pricePerUnit.toDouble(), driverPays = f.driverPays),
                 tossId = PaymentLinks.tossIdOf(f.tossId),
                 kakaoPayCode = PaymentLinks.kakaoPayCodeOf(f.kakaoPay),
@@ -215,5 +303,12 @@ class MainViewModel(private val app: AutonomicsApp) : ViewModel() {
 
     private companion object {
         const val DRIVER_ID = "driver"
+
+        /** "20261107" → "11월 7일" */
+        fun prettyDate(yyyymmdd: String): String =
+            if (yyyymmdd.length == 8) "${yyyymmdd.substring(4, 6).toInt()}월 ${yyyymmdd.substring(6, 8).toInt()}일" else yyyymmdd
+
+        /** 347.2 → "347.2", 1800.0 → "1800" */
+        fun formatPrice(won: Double): String = if (won % 1.0 == 0.0) won.toLong().toString() else won.toString()
     }
 }

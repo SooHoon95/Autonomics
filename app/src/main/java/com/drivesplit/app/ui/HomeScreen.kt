@@ -47,6 +47,7 @@ private val DeleteRed = Color(0xFFFF6B5B)
 @Composable
 fun HomeScreen(vm: MainViewModel) {
     val recent by vm.recentTrips.collectAsStateWithLifecycle()
+    val vehicle by vm.vehicle.collectAsStateWithLifecycle()
     val dateFormat = SimpleDateFormat("M월 d일 HH:mm", Locale.KOREA)
     var editing by remember { mutableStateOf(false) }
     var confirmClear by remember { mutableStateOf(false) }
@@ -69,7 +70,19 @@ fun HomeScreen(vm: MainViewModel) {
                 style = MaterialTheme.typography.bodyLarge,
                 color = Palette.muted,
             )
-            Spacer(Modifier.height(40.dp))
+            vehicle?.let { info ->
+                Spacer(Modifier.height(20.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "내 차 · ${info.kind.label} · 공인 ${efficiency(info.efficiencyKmPerUnit, info.powertrain)}",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    TextButton(onClick = vm::openVehicleSetup, modifier = Modifier.defaultMinSize(minHeight = 56.dp)) {
+                        Text("바꾸기", style = MaterialTheme.typography.bodyLarge, color = Palette.amber)
+                    }
+                }
+            }
+            Spacer(Modifier.height(32.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 ModeButton("정산 모드", "동승자와 탄 구간만큼 나누기", Modifier.weight(1f)) { vm.openSetup(TripMode.SPLIT) }
                 ModeButton("솔로 모드", "내 운전 효율과 연료·충전비 보기", Modifier.weight(1f)) { vm.openSetup(TripMode.SOLO) }

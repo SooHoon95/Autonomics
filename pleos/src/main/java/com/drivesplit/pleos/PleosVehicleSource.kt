@@ -27,6 +27,7 @@ import ai.pleos.playground.navi.helper.NaviHelper
 import ai.pleos.playground.navi.helper.listener.NaviHelperEventListener
 import com.drivesplit.domain.GeoPoint
 import com.drivesplit.domain.Powertrain
+import com.drivesplit.domain.VehicleKind
 import com.drivesplit.domain.VehicleSample
 import com.drivesplit.domain.repository.VehicleDataSource
 import kotlinx.coroutines.Dispatchers
@@ -56,18 +57,17 @@ class PleosVehicleSource(
 ) : VehicleDataSource {
 
     /** 전기차 배터리 값이 오면 전기차로 본다. 차량 서비스가 답하지 않으면 null. */
-    override suspend fun detectPowertrain(): Powertrain? = withContext(Dispatchers.IO) {
+    override suspend fun detectKind(): VehicleKind? = withContext(Dispatchers.IO) {
         val vehicle = Vehicle(context).apply { initialize() }
         try {
             withTimeoutOrNull(DETECT_TIMEOUT_MS) {
                 val batteryWh = suspendCancellableCoroutine { cont ->
                     vehicle.getEvBattery().getEvBatteryLevel({ cont.resume(it) }, { cont.resume(null) })
                 }
-                if (batteryWh != null && batteryWh > 0f) return@withTimeoutOrNull Powertrain.ELECTRIC
                 val fuelPercent = suspendCancellableCoroutine { cont ->
                     vehicle.getFuel().getFuelPercent({ cont.resume(it) }, { cont.resume(null) })
                 }
-                if (fuelPercent != null) Powertrain.FUEL else null
+                VehicleKind.guess(hasBattery = batteryWh != null && batteryWh > 0f, hasFuel = fuelPercent != null)
             }
         } finally {
             vehicle.release()
@@ -75,7 +75,7 @@ class PleosVehicleSource(
     }
 
     @SuppressLint("MissingPermission")
-    override fun samples(): Flow<VehicleSample> = callbackFlow {
+    override fun samples(powertrain: Powertrain): Flow<VehicleSample> = callbackFlow {
         // 각 값은 서로 다른 스레드에서 따로 들어온다. 최신 값만 들고 있다가 정해진 주기로 묶는다.
         val latest = Latest()
 
@@ -152,7 +152,7 @@ class PleosVehicleSource(
             while (true) {
                 runCatching { navi.getCurrentLocationInfo() }
                 // 벽시계는 시간 동기화로 튈 수 있어서, 샘플 간격은 부팅 후 경과 시간으로 잰다.
-                send(latest.toSample(SystemClock.elapsedRealtime(), tankLiters))
+                send(latest.toSample(SystemClock.elapsedRealtime(), tankLiters, powertrain))
                 delay(SAMPLE_MS)
             }
         }
@@ -187,13 +187,14 @@ class PleosVehicleSource(
         @Volatile var naviLocation: GeoPoint? = null
         @Volatile var region: String? = null
 
-        fun toSample(nowMs: Long, tankLiters: Double?): VehicleSample {
+        fun toSample(nowMs: Long, tankLiters: Double?, powertrain: Powertrain): VehicleSample {
             val fuelLiters = fuelPercent?.let { p -> tankLiters?.let { it * p / 100.0 } }
             return VehicleSample(
                 timestampMs = nowMs,
                 // 차속 센서가 없으면 기어로 판단한다. P가 아니면 달리는 중으로 본다.
                 speedKmh = if (parked) 0.0 else speedKmh ?: UNKNOWN_MOVING_KMH,
-                energyLevel = batteryKwh ?: fuelLiters,
+                // 하이브리드의 배터리는 연료로 채운 완충이라 비용이 아니다. 차종에 맞는 잔량만 보낸다.
+                energyLevel = if (powertrain == Powertrain.ELECTRIC) batteryKwh else fuelLiters,
                 odometerKm = odometerKm,
                 region = region,
                 // 지나온 길은 GPS를 우선한다. 에뮬레이터의 내비는 GPS를 따라가지 않고 제자리에 있다.

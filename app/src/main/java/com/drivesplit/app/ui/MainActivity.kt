@@ -40,6 +40,7 @@ private fun AppRoot(vm: MainViewModel = viewModel(factory = factory)) {
     val trip by vm.trip.collectAsStateWithLifecycle()
     val showSetup by vm.showSetup.collectAsStateWithLifecycle()
     val history by vm.history.collectAsStateWithLifecycle()
+    val vehicleForm by vm.vehicleForm.collectAsStateWithLifecycle()
 
     when (val state = trip) {
         is TripState.Active -> when (state.setup.mode) {
@@ -50,6 +51,7 @@ private fun AppRoot(vm: MainViewModel = viewModel(factory = factory)) {
         TripState.Idle -> {
             val past = history
             when {
+                vehicleForm != null -> VehicleSetupScreen(vm)
                 past != null -> FinishedScreen(past, vm, onClose = vm::closeHistory, closeLabel = "닫기")
                 showSetup -> SetupScreen(vm)
                 else -> HomeScreen(vm)

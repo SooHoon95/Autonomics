@@ -9,6 +9,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.drivesplit.domain.Powertrain
+import com.drivesplit.domain.VehicleKind
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -63,4 +64,27 @@ val Powertrain.energyWord: String get() = if (this == Powertrain.ELECTRIC) "전�
 val Powertrain.efficiencyWord: String get() = if (this == Powertrain.ELECTRIC) "전비" else "연비"
 val Powertrain.costWord: String get() = if (this == Powertrain.ELECTRIC) "충전비" else "연료비"
 val Powertrain.perUnitWord: String get() = if (this == Powertrain.ELECTRIC) "kWh당" else "리터당"
+
+val VehicleKind.label: String
+    get() = when (this) {
+        VehicleKind.GASOLINE -> "휘발유차"
+        VehicleKind.DIESEL -> "경유차"
+        VehicleKind.HYBRID -> "하이브리드"
+        VehicleKind.ELECTRIC -> "전기차"
+    }
+
+/** 차종 카드 아래에 보이는 단가 기준. */
+val VehicleKind.priceBasis: String
+    get() = when (this) {
+        VehicleKind.GASOLINE, VehicleKind.HYBRID -> "휘발유 가격으로"
+        VehicleKind.DIESEL -> "경유 가격으로"
+        VehicleKind.ELECTRIC -> "충전 단가로"
+    }
+
+val VehicleKind.howItsCounted: String
+    get() = when (this) {
+        VehicleKind.GASOLINE, VehicleKind.DIESEL -> "차의 연료 잔량이 줄어든 만큼 계산해요."
+        VehicleKind.HYBRID -> "하이브리드의 배터리는 연료로 채우는 거라 따로 돈이 들지 않아요. 연료가 줄어든 만큼만 계산해요."
+        VehicleKind.ELECTRIC -> "배터리 에너지가 줄어든 만큼 계산해요. 회생제동으로 다시 찬 양은 빼요."
+    }
 fun sourceLabel(measured: Boolean): String = if (measured) "(실측)" else "(추정)"

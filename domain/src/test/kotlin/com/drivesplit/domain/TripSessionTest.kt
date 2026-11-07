@@ -116,16 +116,16 @@ class TripSessionTest {
 
     /** 정차한 채 10초. 하차·승차 조작은 정차 중에만 된다. */
     private class ParkedTenSeconds : VehicleDataSource {
-        override suspend fun detectPowertrain(): Powertrain = Powertrain.FUEL
-        override fun samples(): Flow<VehicleSample> = flow {
+        override suspend fun detectKind(): VehicleKind = VehicleKind.GASOLINE
+        override fun samples(powertrain: Powertrain): Flow<VehicleSample> = flow {
             for (sec in 0..10) emit(VehicleSample(sec * 1_000L, 0.0))
         }
     }
 
     private class CountingVehicle : VehicleDataSource {
         var subscriptions = 0
-        override suspend fun detectPowertrain(): Powertrain = Powertrain.FUEL
-        override fun samples(): Flow<VehicleSample> = flow {
+        override suspend fun detectKind(): VehicleKind = VehicleKind.GASOLINE
+        override fun samples(powertrain: Powertrain): Flow<VehicleSample> = flow {
             subscriptions++
             emit(VehicleSample(0, 0.0))
         }
@@ -133,8 +133,8 @@ class TripSessionTest {
 
     /** 1초 간격 샘플 11개(10초). 재부팅을 흉내 내려고 시각은 매번 0부터 센다. */
     private class TenSecondsAt60 : VehicleDataSource {
-        override suspend fun detectPowertrain(): Powertrain = Powertrain.FUEL
-        override fun samples(): Flow<VehicleSample> = flow {
+        override suspend fun detectKind(): VehicleKind = VehicleKind.GASOLINE
+        override fun samples(powertrain: Powertrain): Flow<VehicleSample> = flow {
             for (sec in 0..10) emit(VehicleSample(sec * 1_000L, 60.0))
         }
     }
