@@ -13,10 +13,10 @@
     <!-- 차량·위치·음성 권한은 :pleos, 인터넷은 :data 매니페스트에서 합쳐진다. -->
 
     <application
-        android:name=".DriveSplitApp"
-        android:icon="@drawable/ic_launcher"
+        android:name=".AutonomicsApp"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.DriveSplit">
+        android:theme="@style/Theme.Autonomics">
 
         <activity
             android:name=".ui.MainActivity"

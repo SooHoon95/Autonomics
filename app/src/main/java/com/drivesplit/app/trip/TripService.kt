@@ -33,7 +33,7 @@ class TripService : LifecycleService() {
             NotificationChannel(CHANNEL_ID, getString(R.string.trip_channel_name), NotificationManager.IMPORTANCE_LOW),
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(getString(R.string.trip_notification_title))
             .setOngoing(true)
             .build()

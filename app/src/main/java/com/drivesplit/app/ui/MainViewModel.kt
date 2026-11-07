@@ -3,7 +3,7 @@ package com.drivesplit.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.drivesplit.app.BuildConfig
-import com.drivesplit.app.DriveSplitApp
+import com.drivesplit.app.AutonomicsApp
 import com.drivesplit.domain.trip.TripMode
 import com.drivesplit.domain.trip.TripRecord
 import com.drivesplit.app.trip.TripService
@@ -66,7 +66,7 @@ data class SetupForm(
     }
 }
 
-class MainViewModel(private val app: DriveSplitApp) : ViewModel() {
+class MainViewModel(private val app: AutonomicsApp) : ViewModel() {
 
     private val container = app.container
     private val session = container.tripSession

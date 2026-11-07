@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    AUTONOMICS 아이콘: 구간 색(앱과 같은 주황·하늘·보라)으로 나눈 기름 방울 = 탄 만큼 공정하게 나눠 기름값 논쟁을 끝낸다.
+    방울 안의 게이지(빨강→주황→초록)와 바늘 = 운전 효율을 본다.
+    적응형 아이콘 안전 영역(지름 66dp) 안에 들어오게 줄여 그린다.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.86"
+        android:scaleY="0.86">
+        <!-- 구간 색으로 나눈 기름 방울 -->
+        <group>
+            <clip-path android:pathData="M54,18C54,18 28,47 28,64a26,26 0,0 0,52 0C80,47 54,18 54,18Z" />
+            <path android:fillColor="#FFFFB547" android:pathData="M20,10h25.5v90h-25.5z" />
+            <path android:fillColor="#FF4FC3F7" android:pathData="M45.5,10h17v90h-17z" />
+            <path android:fillColor="#FFB388FF" android:pathData="M62.5,10h25.5v90h-25.5z" />
+        </group>
+        <!-- 효율 게이지 -->
+        <path android:fillColor="#FF141A2B" android:pathData="M37,65a17,17 0,1 0,34 0a17,17 0,1 0,-34 0" />
+        <path
+            android:pathData="M42.4,72A13,13 0,0 1,45.6 55"
+            android:strokeColor="#FFFF6B5B"
+            android:strokeWidth="4"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M49.5,52.8A13,13 0,0 1,58.5 52.8"
+            android:strokeColor="#FFFFB547"
+            android:strokeWidth="4"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M62.4,55A13,13 0,0 1,65.6 72"
+            android:strokeColor="#FF3DDC97"
+            android:strokeWidth="4"
+            android:strokeLineCap="round" />
+        <!-- 바늘: 초록(효율 좋음) 쪽 -->
+        <path
+            android:pathData="M54,67L62,57"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="3.5"
+            android:strokeLineCap="round" />
+        <path android:fillColor="#FFFFFFFF" android:pathData="M50.5,67a3.5,3.5 0,1 0,7 0a3.5,3.5 0,1 0,-7 0" />
+    </group>
+</vector>

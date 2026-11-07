@@ -60,7 +60,7 @@ fun HomeScreen(vm: MainViewModel) {
 
     Row(Modifier.fillMaxSize().padding(40.dp), horizontalArrangement = Arrangement.spacedBy(40.dp)) {
         Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.Center) {
-            Text("DriveSplit", style = MaterialTheme.typography.titleLarge, color = Palette.amber)
+            Text("AUTONOMICS", style = MaterialTheme.typography.titleLarge, color = Palette.amber)
             Spacer(Modifier.height(12.dp))
             Text("실제로 쓴 연료·전기만큼\n계산해요", style = MaterialTheme.typography.displayLarge.copy(fontSize = 64.sp))
             Spacer(Modifier.height(16.dp))

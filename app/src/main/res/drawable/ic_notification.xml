@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 알림·단색 아이콘: 앱 아이콘의 기름 방울에 게이지 구멍과 바늘만 흰색 한 가지로 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M54,12C54,12 24,45 24,65a30,30 0,0 0,60 0C84,45 54,12 54,12Z M35,66a19,19 0,1 0,38 0a19,19 0,1 0,-38 0Z" />
+    <path
+        android:pathData="M54,68L64,56"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round" />
+    <path android:fillColor="#FFFFFFFF" android:pathData="M49.5,68a4.5,4.5 0,1 0,9 0a4.5,4.5 0,1 0,-9 0" />
+</vector>

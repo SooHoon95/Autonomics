@@ -46,7 +46,7 @@ private val typography = Typography(
 )
 
 @Composable
-fun DriveSplitTheme(content: @Composable () -> Unit) {
+fun AutonomicsTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = colors, typography = typography, content = content)
 }
 

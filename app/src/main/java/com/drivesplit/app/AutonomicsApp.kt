@@ -35,7 +35,7 @@ class AppContainer(app: Application) {
     )
 }
 
-class DriveSplitApp : Application() {
+class AutonomicsApp : Application() {
     lateinit var container: AppContainer
         private set
 
@@ -48,7 +48,7 @@ class DriveSplitApp : Application() {
 
     fun resumeTrip(onDone: () -> Unit = {}) {
         MainScope().launch {
-            if (container.tripSession.resume()) TripService.start(this@DriveSplitApp)
+            if (container.tripSession.resume()) TripService.start(this@AutonomicsApp)
             onDone()
         }
     }

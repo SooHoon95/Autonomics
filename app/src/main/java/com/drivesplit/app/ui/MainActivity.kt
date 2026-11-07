@@ -13,7 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.drivesplit.app.DriveSplitApp
+import com.drivesplit.app.AutonomicsApp
 import com.drivesplit.domain.trip.TripMode
 import com.drivesplit.domain.trip.TripState
 
@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            DriveSplitTheme {
+            AutonomicsTheme {
                 // Surface가 기본 글자색(contentColor)을 내려줘야 색을 지정 안 한 Text도 다크 배경에서 보인다.
                 Surface(Modifier.fillMaxSize(), color = Palette.ink, contentColor = Palette.text) {
                     AppRoot()
@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
 }
 
 private val factory = viewModelFactory {
-    initializer { MainViewModel(this[APPLICATION_KEY] as DriveSplitApp) }
+    initializer { MainViewModel(this[APPLICATION_KEY] as AutonomicsApp) }
 }
 
 @Composable
