@@ -32,20 +32,43 @@ class SettlementCalculatorTest {
     fun driverExcludedSplitsAmongRidersAndKeepsTotal() {
         val result = SettlementCalculator.settle(passengers, segments, profile, options.copy(driverPays = false))
 
-        assertEquals(44_000L, result.totalWon)
-        assertEquals(mapOf("a" to 0L, "b" to 18_670L, "c" to 18_670L, "d" to 6_660L), result.shares)
+        // 각자 1원 단위로 반올림(18,666.7→18,667, 6,666.7→6,667). 운전자는 분담에서 빠져 0원.
+        assertEquals(mapOf("a" to 0L, "b" to 18_667L, "c" to 18_667L, "d" to 6_667L), result.shares)
+        assertEquals(44_001L, result.totalWon)
+    }
+
+    @Test
+    fun ridersOnSameSegmentsAlwaysPayTheSame() {
+        // 실제 쓴 기름값 75원을 3명이 탔으면 운전자 포함 각자 25원, 합계도 75원.
+        val three = listOf(Passenger("a", "운전자", isDriver = true), Passenger("b", "민수"), Passenger("c", "지연"))
+        val ride = listOf(segment(setOf("a", "b", "c"), 0.75, rate = 0.075))
+
+        val result = SettlementCalculator.settle(three, ride, profile, options)
+
+        assertEquals(mapOf("a" to 25L, "b" to 25L, "c" to 25L), result.shares)
+        assertEquals(75L, result.totalWon)
+    }
+
+    @Test
+    fun ridersRiseTogetherAsTheTripGoesOn() {
+        // 주행 중 금액이 늘어날 때 같이 내는 사람(운전자 포함) 금액이 한 명씩 번갈아 오르지 않는다.
+        for (won in 40..200 step 7) {
+            val ride = listOf(segment(setOf("a", "b", "c", "d"), 1.0, rate = won / 1000.0))
+            val shares = SettlementCalculator.settle(passengers, ride, profile, options).shares
+
+            assertEquals("at ${won}원", 1, shares.values.toSet().size)
+        }
     }
 
     @Test
     fun settledShareStaysFixedWhileOthersKeepRounding() {
-        // 3명이 10원 단위로 나누면 3,340/3,330/3,330. 중간에 내린 c는 3,330원으로 확정됐다.
+        // 중간에 내린 c는 3,000원으로 확정됐다. 남은 두 사람은 각자 3,333.3→3,333원.
         val three = listOf(Passenger("a", "운전자", isDriver = true), Passenger("b", "민수"), Passenger("c", "지연"))
         val ride = listOf(segment(setOf("a", "b", "c"), 100.0))
-        val result = SettlementCalculator.settle(three, ride, profile, options, settledShares = mapOf("c" to 3_330L))
+        val result = SettlementCalculator.settle(three, ride, profile, options, settledShares = mapOf("c" to 3_000L))
 
-        assertEquals(3_330L, result.shares["c"])
-        assertEquals(10_000L, result.totalWon)
-        assertEquals(6_670L, result.shares.getValue("a") + result.shares.getValue("b"))
+        assertEquals(3_000L, result.shares["c"])
+        assertEquals(mapOf("a" to 3_333L, "b" to 3_333L, "c" to 3_000L), result.shares)
     }
 
     @Test

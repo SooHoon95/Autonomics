@@ -92,6 +92,12 @@ fun PersonSettlementCard(
                         contentDescription = "$title QR 코드",
                         modifier = Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(12.dp)),
                     )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "찍으면 내 정산서가 열리고 금액을 복사할 수 있어요",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Palette.muted,
+                    )
                 }
             }
         }

@@ -37,9 +37,6 @@ data class TripSetup(
     val passengers: List<Passenger>,
     val profile: VehicleProfile,
     val options: SettlementOptions,
-    val tossId: String?,
-    /** 운전자의 카카오페이 송금 코드. */
-    val kakaoPayCode: String? = null,
 )
 
 /** 정산과 운전 리포트는 같은 구간 데이터로 만든다. 모드에 따라 화면에서 쓰는 쪽만 다르다. */

@@ -29,7 +29,6 @@ class TripSessionTest {
         passengers = listOf(Passenger("a", "운전자", isDriver = true), Passenger("b", "민수")),
         profile = VehicleProfile(efficiencyKmPerUnit = 10.0),
         options = SettlementOptions(pricePerUnit = 1_000.0),
-        tossId = null,
     )
 
     @Test

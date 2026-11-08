@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -76,17 +77,66 @@ fun RouteMap(lines: List<RouteLine>, markers: List<RouteMarker>, modifier: Modif
 
         val start = RouteMarker(all.first(), "출발", Palette.text)
         val end = RouteMarker(all.last(), "도착", Palette.amber)
-        (listOf(start) + markers + end).forEach { marker ->
-            val o = project(marker.point)
+        val pins = listOf(start, end) + markers
+        val dots = pins.map { project(it.point) }
+        dots.zip(pins).forEach { (o, marker) ->
             drawCircle(Palette.ink, radius = 14.dp.toPx(), center = o)
             drawCircle(marker.color, radius = 9.dp.toPx(), center = o)
+        }
+
+        // 라벨은 점과 다른 라벨을 가리지 않는 자리를 찾아 놓는다. 출발·도착을 먼저 자리 잡고,
+        // 가까운 자리가 다 차 있으면 더 멀리 놓고 점까지 가는 선을 긋는다.
+        val placed = mutableListOf<Rect>()
+        val dotBoxes = dots.map { Rect(it, 15.dp.toPx()) }
+        val pad = 6.dp.toPx()
+        dots.zip(pins).forEach { (o, marker) ->
             val text = textMeasurer.measure(marker.label, labelStyle)
-            val x = (o.x + 18.dp.toPx()).coerceAtMost(size.width - text.size.width)
-            val y = (o.y - text.size.height / 2).coerceIn(0f, size.height - text.size.height)
-            drawLabelBackground(Offset(x, y), text.size.width.toFloat(), text.size.height.toFloat())
-            drawText(text, topLeft = Offset(x, y))
+            val w = text.size.width.toFloat()
+            val h = text.size.height.toFloat()
+            val box = labelSpot(o, w, h, pad, placed, dotBoxes)
+            placed += box
+            val topLeft = Offset(box.left + pad, box.top + pad / 2)
+            val center = box.center
+            if ((center - o).getDistance() > w / 2 + 40.dp.toPx()) {
+                drawLine(Palette.muted, o, Offset(center.x.coerceIn(box.left, box.right), center.y.coerceIn(box.top, box.bottom)), 2.dp.toPx())
+            }
+            drawLabelBackground(topLeft, w, h)
+            drawText(text, topLeft = topLeft)
         }
     }
+}
+
+/**
+ * 점 [o] 둘레의 후보 자리(오른쪽, 왼쪽, 위, 아래, 대각선 순, 가까운 것부터)를 차례로 보고
+ * 화면 안에 있으면서 이미 놓은 라벨·점과 겹치지 않는 첫 자리를 돌려준다. 다 겹치면 가장 덜 겹치는 자리.
+ */
+private fun DrawScope.labelSpot(o: Offset, w: Float, h: Float, pad: Float, placed: List<Rect>, dots: List<Rect>): Rect {
+    val bw = w + pad * 2
+    val bh = h + pad
+    val gap = 20.dp.toPx()
+    val candidates = buildList {
+        for (step in 0..3) {
+            val d = gap + step * (bh + 4.dp.toPx())
+            add(Offset(o.x + d, o.y - bh / 2))            // 오른쪽
+            add(Offset(o.x - d - bw, o.y - bh / 2))       // 왼쪽
+            add(Offset(o.x - bw / 2, o.y - d - bh))       // 위
+            add(Offset(o.x - bw / 2, o.y + d))            // 아래
+            add(Offset(o.x + d * 0.7f, o.y - d * 0.7f - bh))   // 오른쪽 위
+            add(Offset(o.x + d * 0.7f, o.y + d * 0.7f))        // 오른쪽 아래
+            add(Offset(o.x - d * 0.7f - bw, o.y - d * 0.7f - bh)) // 왼쪽 위
+            add(Offset(o.x - d * 0.7f - bw, o.y + d * 0.7f))      // 왼쪽 아래
+        }
+    }.map { Rect(it, Size(bw, bh)) }
+        .filter { it.left >= 0 && it.top >= 0 && it.right <= size.width && it.bottom <= size.height }
+
+    fun overlap(r: Rect): Float = (placed + dots).sumOf { other ->
+        val i = r.intersect(other)
+        if (i.width > 0 && i.height > 0) (i.width * i.height).toDouble() else 0.0
+    }.toFloat()
+
+    return candidates.firstOrNull { overlap(it) == 0f }
+        ?: candidates.minByOrNull { overlap(it) }
+        ?: Rect(Offset((o.x + gap).coerceAtMost(size.width - bw), (o.y - bh / 2).coerceIn(0f, size.height - bh)), Size(bw, bh))
 }
 
 private fun DrawScope.drawLabelBackground(topLeft: Offset, w: Float, h: Float) {

@@ -11,7 +11,6 @@ import com.drivesplit.domain.trip.TripSetup
 import com.drivesplit.domain.trip.TripState
 import com.drivesplit.domain.GeoPoint
 import com.drivesplit.domain.Passenger
-import com.drivesplit.domain.PaymentLinks
 import com.drivesplit.domain.Powertrain
 import com.drivesplit.domain.Settlement
 import com.drivesplit.domain.SettlementOptions
@@ -40,14 +39,7 @@ data class SetupForm(
     /** 단가의 출처와 기준일. 출발 화면에 그대로 보여준다(예: "오피넷 전국 평균 · 11월 7일"). */
     val priceBasis: String = "",
     val driverPays: Boolean = true,
-    /** 운전자 토스 아이디 또는 toss.me 링크. */
-    val tossId: String = "",
-    /** 운전자 카카오페이 송금 링크(qr.kakaopay.com/…) 또는 코드. */
-    val kakaoPay: String = "",
 ) {
-    /** 입력했는데 알아볼 수 없는 송금 링크. 화면에 형식을 다시 확인하라고 알린다. */
-    val tossInvalid: Boolean get() = tossId.isNotBlank() && PaymentLinks.tossIdOf(tossId) == null
-    val kakaoPayInvalid: Boolean get() = kakaoPay.isNotBlank() && PaymentLinks.kakaoPayCodeOf(kakaoPay) == null
 
     val powertrain: Powertrain get() = kind.powertrain
 
@@ -217,8 +209,6 @@ class MainViewModel(private val app: AutonomicsApp) : ViewModel() {
                 passengers = passengers,
                 profile = VehicleInfo(f.kind, f.efficiency.toDouble()).toProfile(),
                 options = SettlementOptions(pricePerUnit = f.pricePerUnit.toDouble(), driverPays = f.driverPays),
-                tossId = PaymentLinks.tossIdOf(f.tossId),
-                kakaoPayCode = PaymentLinks.kakaoPayCodeOf(f.kakaoPay),
             ),
         )
         TripService.start(app)
@@ -250,7 +240,7 @@ class MainViewModel(private val app: AutonomicsApp) : ViewModel() {
         return ShareLink.encode(
             BuildConfig.SHARE_BASE_URL,
             ShareLink.payloadForDropOff(
-                settlement, passenger, setup.options.pricePerUnit, setup.tossId, setup.profile.powertrain, setup.kakaoPayCode,
+                settlement, passenger, setup.options.pricePerUnit, setup.profile.powertrain,
             ),
         )
     }
@@ -283,9 +273,7 @@ class MainViewModel(private val app: AutonomicsApp) : ViewModel() {
             finished.figures.settlement,
             finished.setup.passengers,
             finished.setup.options.pricePerUnit,
-            finished.setup.tossId,
             finished.setup.profile.powertrain,
-            finished.setup.kakaoPayCode,
         ),
     )
 

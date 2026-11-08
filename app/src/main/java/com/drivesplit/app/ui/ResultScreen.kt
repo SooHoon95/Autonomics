@@ -107,6 +107,11 @@ fun ResultScreen(state: TripState.Finished, vm: MainViewModel, onClose: () -> Un
             Panel(Modifier.weight(0.7f).fillMaxHeight()) {
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("동승자 폰으로 찍으세요", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        "내 몫을 골라 금액을 복사해 보내요",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Palette.muted,
+                    )
                     Spacer(Modifier.height(16.dp))
                     Image(
                         bitmap = qr,

@@ -1,6 +1,6 @@
 // 앱이 쓰는 오늘 단가(유가·충전 요금)를 한곳에서 내려준다.
-// 오피넷 무료 키는 하루 1,500건이라 앱마다 부르면 금방 막힌다. 여기서만 부르고 CDN이 1시간 캐시하므로
-// 사용자가 몇 명이든 오피넷 호출은 하루 최대 24번이다. 키(OPINET_KEY)는 Netlify 환경 변수에만 둔다.
+// 오피넷 일반 키는 하루 300건이라 앱마다 부르면 금방 막힌다. 여기서만 부르고 CDN이 3시간 캐시하므로
+// 사용자가 몇 명이든 오피넷 호출은 하루 최대 8번이다(일반 키 한도 하루 300건). 키(OPINET_KEY)는 Netlify 환경 변수에만 둔다.
 
 // 충전 요금은 실시간 공식 API가 없어 고시가 바뀌면 여기만 고친다.
 const PUBLIC_FAST = { wonPerKwh: 347.2, label: "환경부 공용 급속(100kW 이상)", effectiveDate: "2022-09-01" };
@@ -30,10 +30,10 @@ export default async () => {
   return new Response(JSON.stringify(body), {
     headers: {
       "content-type": "application/json; charset=utf-8",
-      // 브라우저·앱은 매번 새로 묻되, Netlify CDN이 1시간 동안 같은 응답을 준다. 오피넷이 잠깐 죽어도 하루는 지난 값을 준다.
+      // 브라우저·앱은 매번 새로 묻되, Netlify CDN이 3시간 동안 같은 응답을 준다. 오피넷이 잠깐 죽어도 하루는 지난 값을 준다.
       "cache-control": "public, max-age=0, must-revalidate",
       "netlify-cdn-cache-control": fuel
-        ? "public, durable, s-maxage=3600, stale-while-revalidate=86400"
+        ? "public, durable, s-maxage=10800, stale-while-revalidate=86400"
         : "public, durable, s-maxage=300",
     },
   });

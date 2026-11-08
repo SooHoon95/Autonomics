@@ -14,8 +14,6 @@ class ShareLinkTest {
             pricePerUnit = 1650,
             totalWon = 44_000,
             people = listOf(ShareLine("운전자", 13_000, isDriver = true), ShareLine("하준", 5_000)),
-            tossId = "driver01",
-            kakaoPayCode = "Ej8x1y2z",
         )
 
         val url = ShareLink.encode("https://example.netlify.app/s", payload)
@@ -35,7 +33,7 @@ class ShareLinkTest {
             passengers, segments, VehicleProfile(10.0), SettlementOptions(pricePerUnit = 1000.0),
         )
 
-        val payload = ShareLink.payloadForDropOff(settlement, passengers[1], 1000.0, tossId = "driver01")
+        val payload = ShareLink.payloadForDropOff(settlement, passengers[1], 1000.0)
 
         assertEquals(200.0, payload.distanceKm, 0.0)
         assertEquals(20.0, payload.energy, 0.0)

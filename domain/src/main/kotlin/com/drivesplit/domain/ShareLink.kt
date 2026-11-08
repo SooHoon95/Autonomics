@@ -17,12 +17,8 @@ data class SharePayload(
     @SerialName("pr") val pricePerUnit: Int,
     @SerialName("t") val totalWon: Long,
     @SerialName("p") val people: List<ShareLine>,
-    /** 운전자의 토스 아이디. 있으면 페이지에서 toss.me/{아이디}/{금액} 송금 버튼을 띄운다. */
-    @SerialName("toss") val tossId: String? = null,
     /** 에너지 단위. 기본값(L)이면 링크에서 빠진다. */
     @SerialName("u") val unit: String = Powertrain.FUEL.unit,
-    /** 운전자의 카카오페이 송금 코드. 있으면 페이지에서 qr.kakaopay.com/{코드} 버튼을 띄운다. */
-    @SerialName("kp") val kakaoPayCode: String? = null,
 )
 
 @Serializable
@@ -39,18 +35,14 @@ object ShareLink {
         settlement: Settlement,
         passengers: List<Passenger>,
         pricePerUnit: Double,
-        tossId: String?,
         powertrain: Powertrain = Powertrain.FUEL,
-        kakaoPayCode: String? = null,
     ) = SharePayload(
         distanceKm = Math.round(settlement.totalDistanceKm * 10) / 10.0,
         energy = Math.round(settlement.totalEnergy * 100) / 100.0,
         pricePerUnit = Math.round(pricePerUnit).toInt(),
         totalWon = settlement.totalWon,
         people = passengers.map { ShareLine(it.name, settlement.shares[it.id] ?: 0, it.isDriver) },
-        tossId = tossId?.takeIf { it.isNotBlank() },
         unit = powertrain.unit,
-        kakaoPayCode = kakaoPayCode?.takeIf { it.isNotBlank() },
     )
 
     /** 중간에 내린 한 사람에게 보여줄 정산서. 그 사람이 탄 구간의 거리와 에너지만 담는다. */
@@ -58,9 +50,7 @@ object ShareLink {
         settlement: Settlement,
         passenger: Passenger,
         pricePerUnit: Double,
-        tossId: String?,
         powertrain: Powertrain = Powertrain.FUEL,
-        kakaoPayCode: String? = null,
     ): SharePayload {
         val ridden = settlement.segmentsRiddenBy(passenger.id)
         val amount = settlement.shares[passenger.id] ?: 0
@@ -70,10 +60,8 @@ object ShareLink {
             pricePerUnit = Math.round(pricePerUnit).toInt(),
             totalWon = amount,
             people = listOf(ShareLine(passenger.name, amount, passenger.isDriver)),
-            tossId = tossId?.takeIf { it.isNotBlank() },
-            unit = powertrain.unit,
-            kakaoPayCode = kakaoPayCode?.takeIf { it.isNotBlank() },
-        )
+                unit = powertrain.unit,
+            )
     }
 
     fun encode(baseUrl: String, payload: SharePayload): String {

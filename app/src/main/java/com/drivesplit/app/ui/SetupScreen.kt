@@ -217,17 +217,6 @@ fun SetupScreen(vm: MainViewModel) {
                         style = MaterialTheme.typography.bodyMedium,
                         color = Palette.muted,
                     )
-                    if (form.mode == TripMode.SPLIT) {
-                        // 동승자가 QR 정산서에서 바로 송금할 수 있게 받을 곳을 적어 둔다.
-                        Field(
-                            if (form.tossInvalid) "토스 아이디를 알아볼 수 없어요 · 예: toss.me/아이디" else "운전자 토스 아이디 (선택) · 금액까지 채워져요",
-                            form.tossId,
-                        ) { v -> vm.updateForm { it.copy(tossId = v) } }
-                        Field(
-                            if (form.kakaoPayInvalid) "카카오페이 링크를 알아볼 수 없어요 · 예: qr.kakaopay.com/…" else "운전자 카카오페이 송금 링크 (선택)",
-                            form.kakaoPay,
-                        ) { v -> vm.updateForm { it.copy(kakaoPay = v) } }
-                    }
                     if (form.mode == TripMode.SPLIT) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("운전자도 나눠 내기", style = MaterialTheme.typography.bodyLarge)
