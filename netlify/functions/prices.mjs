@@ -3,7 +3,9 @@
 // 사용자가 몇 명이든 오피넷 호출은 하루 최대 8번이다(일반 키 한도 하루 300건). 키(OPINET_KEY)는 Netlify 환경 변수에만 둔다.
 
 // 충전 요금은 실시간 공식 API가 없어 고시가 바뀌면 여기만 고친다.
-const PUBLIC_FAST = { wonPerKwh: 347.2, label: "환경부 공용 급속(100kW 이상)", effectiveDate: "2022-09-01" };
+// 2026-08-01 개편(출력별 5단계, 원/kWh): 30kW 미만 295.0 · 30~50kW 307.2 · 50~100kW 325.6 · 100~200kW 348.4 · 200kW 이상 393.1.
+// 기본값은 개편 전 기본값(급속 100kW 이상)에 이어지는 100~200kW 구간으로 둔다. 앱의 출발 화면에서 고칠 수 있다.
+const PUBLIC_FAST = { wonPerKwh: 348.4, label: "기후에너지환경부 공공 급속(100~200kW)", effectiveDate: "2026-08-01" };
 
 const PRODUCT = { gasoline: "B027", diesel: "D047" };
 

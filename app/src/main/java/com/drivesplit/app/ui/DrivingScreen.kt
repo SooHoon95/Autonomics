@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -52,6 +53,11 @@ fun DrivingScreen(state: TripState.Active, vm: MainViewModel) {
     val passengers = state.setup.passengers
     val powertrain = state.setup.profile.powertrain
     var adding by remember { mutableStateOf(false) }
+
+    // 주행 화면에는 QR을 두지 않는다. 정산 카드를 띄운 채 출발하면 닫는다.
+    LaunchedEffect(state.isStopped) {
+        if (!state.isStopped) vm.dismissDropOff()
+    }
 
     Box(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxSize().padding(40.dp), horizontalArrangement = Arrangement.spacedBy(40.dp)) {
@@ -106,9 +112,13 @@ fun DrivingScreen(state: TripState.Active, vm: MainViewModel) {
                             )
                             Spacer(Modifier.weight(1f))
                             if (settled) {
-                                // 확정된 금액. 누르면 그 사람의 정산 QR을 다시 띄운다.
-                                TextButton(onClick = { vm.showDropOff(p.id) }) {
-                                    Text("정산 완료 · QR", style = MaterialTheme.typography.bodyMedium, color = Palette.go)
+                                // 확정된 금액. 누르면 그 사람의 정산 QR을 다시 띄운다. QR은 정차 중에만 연다.
+                                TextButton(onClick = { vm.showDropOff(p.id) }, enabled = state.isStopped) {
+                                    Text(
+                                        "정산 완료 · QR",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (state.isStopped) Palette.go else Palette.muted,
+                                    )
                                 }
                             }
                             Text(

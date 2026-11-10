@@ -83,8 +83,8 @@ class NetlifyPrices(context: Context, siteUrl: String) : FuelPriceSource, Charge
         /** 한 번도 받지 못했을 때만 쓰는 값. 출발 화면에서 고칠 수 있다. */
         const val DEFAULT_WON_PER_LITER = 1_700.0
 
-        /** 환경부 공용 급속(100kW 이상) 2022-09 고시 요금. 한 번도 받지 못했을 때만 쓴다. */
-        val BUILT_IN_FAST = ChargePrice(347.2, "환경부 공용 급속(100kW 이상)", "2022-09-01", isLive = false)
+        /** 기후에너지환경부 공공 충전 요금(2026-08-01 개편) 중 급속 100~200kW 구간. 한 번도 받지 못했을 때만 쓴다. */
+        val BUILT_IN_FAST = ChargePrice(348.4, "기후에너지환경부 공공 급속(100~200kW)", "2026-08-01", isLive = false)
 
         val json = Json { ignoreUnknownKeys = true }
     }

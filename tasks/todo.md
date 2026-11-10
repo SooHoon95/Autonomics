@@ -5,6 +5,13 @@
 
 ## 진행 중
 
+### 시연 영상 준비 (2026-11-10)
+- [x] 충전 단가 기본값을 2026-08-01 개편 요금으로 (급속 100~200kW 348.4원/kWh) — `netlify/functions/prices.mjs`, `NetlifyPrices.BUILT_IN_FAST`, Netlify 배포
+- [x] 주행 중에는 `정산 완료 · QR`을 잠그고, 정산 카드를 띄운 채 출발하면 닫기 — `DrivingScreen.kt`
+- [x] 검증: 컨벤션 검사 통과, 도메인 테스트 통과, 빌드 성공. 에뮬레이터에서 출발 화면에 새 요금·시행일 표시, 정차→하차 카드→출발 시 카드 닫힘 확인
+- [x] 시연 영상 촬영·편집 (`docs/proposal/demo-video-scenario.md`) — 본편, 시동 OFF/ON, 중간 탑승, 솔로 모드. 완성본 `docs/proposal/demo-video/AUTONOMICS_demo.mp4` (2분 16초, 프레임 추출로 장면·자막 확인)
+- [ ] 영상에 맞춰 기획서 화면·금액 갱신 (지금 기획서 화면은 옛 요금 347.2원 기준)
+
 ### 차종 입력·하이브리드·순간 연비 (2026-11-07)
 - [x] 도메인: `VehicleKind`(휘발유/경유/하이브리드/전기) + `VehicleInfo`(차종, 공인 연비·전비). 하이브리드·휘발유·경유는 연료(L), 전기는 kWh
 - [x] 도메인: `VehicleInfoRepository` 인터페이스, 유가 조회를 연료 종류별로(`FuelPriceSource`: 휘발유/경유)
