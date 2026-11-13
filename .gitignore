@@ -7,3 +7,20 @@ local.properties
 captures/
 .kotlin/
 .omc/
+
+# 파이썬 컴파일 파일. 만든 컴퓨터의 절대 경로(계정 이름)가 들어간다.
+__pycache__/
+*.pyc
+
+# 서명 키·환경 변수 파일. 공개 저장소에 올라가면 안 된다.
+*.jks
+*.keystore
+keystore.properties
+.env
+.env.*
+
+# Netlify CLI가 만드는 로컬 상태
+.netlify/
+
+# 공모전 주최 측이 배포한 양식 원본. 참고용으로만 두고 올리지 않는다(문서 속성에 담당자 이름이 있다).
+docs/proposal/official/
