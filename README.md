@@ -14,7 +14,6 @@
 - 플랫폼: Pleos Connect (Android Automotive OS), Kotlin + Jetpack Compose
 - APK: [`apk/THR3AD_AUTONOMICS_release.apk`](apk/THR3AD_AUTONOMICS_release.apk)
 - 시연 영상 (2분 16초, 무음 자막): [`docs/proposal/demo-video/AUTONOMICS_demo.mp4`](docs/proposal/demo-video/AUTONOMICS_demo.mp4)
-- 기획서: [`docs/proposal/pdf/autonomics-proposal.pdf`](docs/proposal/pdf/autonomics-proposal.pdf)
 
 | 중간 하차 정산 | 도착 정산 |
 |---|---|
