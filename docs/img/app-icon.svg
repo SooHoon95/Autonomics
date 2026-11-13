@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="18 18 72 72" width="256" height="256" role="img" aria-label="AUTONOMICS 앱 아이콘">
+  <!-- app/src/main/res/drawable/ic_launcher_{background,foreground}.xml을 그대로 옮긴 것. 적응형 아이콘이 보이는 가운데 72dp만 둥근 사각형으로 자른다. -->
+  <defs>
+    <linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="108" y2="108">
+      <stop offset="0" stop-color="#2E3858"/>
+      <stop offset="1" stop-color="#121726"/>
+    </linearGradient>
+    <clipPath id="mask"><rect x="18" y="18" width="72" height="72" rx="16"/></clipPath>
+    <clipPath id="drop"><path d="M54,18C54,18 28,47 28,64a26,26 0,0 0,52 0C80,47 54,18 54,18Z"/></clipPath>
+  </defs>
+  <g clip-path="url(#mask)">
+    <rect width="108" height="108" fill="url(#bg)"/>
+    <g transform="translate(54 54) scale(0.86) translate(-54 -54)">
+      <g clip-path="url(#drop)">
+        <path fill="#FFB547" d="M20,10h25.5v90h-25.5z"/>
+        <path fill="#4FC3F7" d="M45.5,10h17v90h-17z"/>
+        <path fill="#B388FF" d="M62.5,10h25.5v90h-25.5z"/>
+      </g>
+      <path fill="#141A2B" d="M37,65a17,17 0,1 0,34 0a17,17 0,1 0,-34 0"/>
+      <g fill="none" stroke-width="4" stroke-linecap="round">
+        <path stroke="#FF6B5B" d="M42.4,72A13,13 0,0 1,45.6 55"/>
+        <path stroke="#FFB547" d="M49.5,52.8A13,13 0,0 1,58.5 52.8"/>
+        <path stroke="#3DDC97" d="M62.4,55A13,13 0,0 1,65.6 72"/>
+      </g>
+      <path fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" d="M54,67L62,57"/>
+      <path fill="#FFFFFF" d="M50.5,67a3.5,3.5 0,1 0,7 0a3.5,3.5 0,1 0,-7 0"/>
+    </g>
+  </g>
+</svg>
