@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Pleos 공모전 기획서 가이드라인</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .k { display: inline-block; font-size: 7pt; font-weight: 800; padding: 0 1.3mm; border-radius: 1mm; border: 1px solid currentColor; line-height: 1.55; vertical-align: .3mm; white-space: nowrap; }
+  .k.fact { color: #1f8a4c; } .k.impl { color: #2467c9; } .k.asm { color: #b26a00; }
+  .v { display: inline-block; font-size: 7.5pt; font-weight: 700; padding: .3mm 1.8mm; border-radius: 10mm; white-space: nowrap; }
+  .v.keep { background: #e3f4ea; color: #1f8a4c; } .v.change { background: #e2ecfb; color: #2467c9; }
+  .v.shrink { background: #fff1d9; color: #b26a00; } .v.drop { background: #eceef1; color: #4a515c; }
+  .wbar { display: flex; height: 6mm; border-radius: 2mm; overflow: hidden; margin: 2mm 0 1mm; font-size: 7.5pt; font-weight: 700; color: #fff; }
+  .wbar div { display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+  tr.key td { background: #fff8ec; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="top">2026 현대자동차그룹 차량용 앱 개발 공모전 · Code your App into Pleos App Market</div>
+  <div>
+    <div class="title">기획서 작성 가이드라인</div>
+    <div class="sub">12쪽 마스터 기획서의 구조와 쪽별 작성 기준 <span style="font-size:10pt;color:var(--ink-3)">· v2 구조 재설계</span></div>
+    <div class="bar"></div>
+    <p class="lead" style="max-width:150mm">
+      투자유치용 사업계획서의 <strong>설득 구조는 가져오고, 투자 중심 요소는 덜어내</strong>
+      공모전 심사 기준(차량 특화성·창의성·기술 활용성·사업성)에 맞게 다시 설계한 작성 기준입니다.
+      먼저 12쪽 마스터 기획서로 논리를 완성하고, 그 내용을 공식 접수양식의 문항에 옮겨 담습니다.
+    </p>
+  </div>
+  <table class="meta-table" style="width:auto">
+    <tr><td>적용 대상</td><td>AUTONOMICS 기획서 (같은 공모전의 다른 앱에도 적용 가능)</td></tr>
+    <tr><td>v1에서 바뀐 점</td><td>7개 항목 → <strong>가로 슬라이드 12쪽</strong> · "문제 검증"과 "경쟁 우위"를 독립 쪽으로 · 기술을 "구조"와 "검증"으로 분리 · 글을 줄이고 도식 중심으로</td></tr>
+    <tr><td>기획서 제출</td><td>2026.11.15(일)</td></tr>
+    <tr><td>1차 결과 발표</td><td>2026.11.23(월)</td></tr>
+    <tr><td>2차 PT·시연</td><td>2026.12.03 ~ 12.04</td></tr>
+    <tr><td>최종 발표</td><td>2026.12.18(금)</td></tr>
+  </table>
+</div>
+
+<section>
+  <h2><span class="num">01</span>심사위원이 확인하려는 것</h2>
+  <p>
+    이번 공모전은 "기술적으로 잘 만든 앱"보다 <strong>자동차에서 써야 할 분명한 이유가 있고, 실제 서비스로 자랄 수 있는 앱</strong>인지를 봅니다.
+    투자 유치용 사업계획서와 목적이 다르므로 구성도 달라야 합니다.
+  </p>
+  <table>
+    <tr><th style="width:22%">공식 평가 항목</th><th>심사위원의 질문</th><th class="r" style="width:20%">권장 작성 비중</th></tr>
+    <tr><td><strong>차량 특화성</strong></td><td>왜 스마트폰이 아니라 자동차에서 써야 하는가?</td><td class="r"><strong>30%</strong></td></tr>
+    <tr><td><strong>창의성</strong></td><td>어떤 고객 문제를 기존과 다른 방식으로 푸는가?</td><td class="r"><strong>25%</strong></td></tr>
+    <tr><td><strong>기술 활용성</strong></td><td>Pleos SDK로 실제로 구현할 수 있는가?</td><td class="r"><strong>25%</strong></td></tr>
+    <tr><td><strong>사업성</strong></td><td>실제 이용자가 생기고 서비스가 지속될 수 있는가?</td><td class="r"><strong>20%</strong></td></tr>
+  </table>
+  <div class="weights">
+    <div style="width:30%;background:#277BBD"></div><div style="width:25%;background:#46A3B8"></div>
+    <div style="width:25%;background:#7B85CD"></div><div style="width:20%;background:#C69B62"></div>
+  </div>
+  <p class="caption">공식 세부 배점은 비공개입니다. 30:25:25:20은 작성 우선순위를 정하기 위한 전략적 비중입니다.</p>
+
+  <div class="box dark">
+    <div class="label">우리 기획서가 전해야 할 한 문장</div>
+    <p style="margin:0">투자유치용 문서의 메시지는 "시장이 크고, 우리가 성장할 수 있다"입니다. 우리 메시지는 다릅니다 —
+    <strong>"자동차를 하나의 디지털 플랫폼으로 써서, 기존에는 풀기 어려웠던 고객 문제를 새로운 방식으로 푼다. 그리고 그것을 이미 구현했다."</strong></p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">02</span>참고 사업계획서에서 가져올 것과 덜어낼 것</h2>
+  <p>참고한 투자유치용 사업계획서(25쪽)의 흐름은 <strong>문제가 있다 → 우리가 풀 수 있다 → 시장이 크다 → 경쟁력이 있다 → 성과를 내고 있다 → 크게 성장한다 → 실행할 팀이 있다</strong>입니다.
+  논리 연결은 좋지만, 그대로 옮기면 공모전에는 맞지 않습니다.</p>
+  <table>
+    <tr><th style="width:27%">참고 문서의 구성</th><th style="width:11%">판단</th><th>우리 기획서에 옮기는 방식</th><th class="r" style="width:9%">쪽</th></tr>
+    <tr><td>문제와 해결책을 연속해 제시</td><td><span class="v keep">유지</span></td><td>고객 불편 → 검증 근거 → 해결 방식을 끊지 않고 잇는다</td><td class="r">02–05</td></tr>
+    <tr><td>수요자·공급자 구조도</td><td><span class="v change">변형</span></td><td>운전자·동승자·차량·앱 사이에서 데이터가 흐르는 구조</td><td class="r">08</td></tr>
+    <tr><td>기능 나열</td><td><span class="v shrink">축소</span></td><td>여러 기능 대신 차별적인 핵심 기능 2~3개만 강조</td><td class="r">05 · 07</td></tr>
+    <tr><td>실제 앱 화면</td><td><span class="v keep">강화</span></td><td>차량 디스플레이 화면을 고객 여정 순서로 배치</td><td class="r">06–07</td></tr>
+    <tr><td>시장 규모 (거시 지표)</td><td><span class="v shrink">축소</span></td><td>거대한 산업 규모 대신 실제로 이용 가능한 고객 규모</td><td class="r">03 · 11</td></tr>
+    <tr><td>경쟁사 비교·포지셔닝</td><td><span class="v keep">유지</span></td><td>모바일 앱·차량 기본 기능·유사 서비스와의 차이를 증명</td><td class="r">10</td></tr>
+    <tr><td>기존 성과·성장 지표</td><td><span class="v change">변형</span></td><td>매출 대신 구현 현황, 테스트·검증 결과</td><td class="r">09</td></tr>
+    <tr><td>고객 유지 구조</td><td><span class="v change">변형</span></td><td>다시 쓰게 만드는 핵심 루프와 측정 계획</td><td class="r">11</td></tr>
+    <tr><td>사업화 단계</td><td><span class="v change">변형</span></td><td>MVP → 검증 → 고도화 로드맵</td><td class="r">12</td></tr>
+    <tr><td>매출 목표·투자유치·EXIT</td><td><span class="v drop">제거</span></td><td>현실적인 사용자 확대 계획으로 대체. LTV/CAC·5년 매출 전망은 쓰지 않는다</td><td class="r">—</td></tr>
+    <tr><td>팀·인증 실적</td><td><span class="v shrink">축소</span></td><td>기능 구현에 필요한 역량과 역할만</td><td class="r">12</td></tr>
+  </table>
+  <div class="grid3">
+    <div class="box soft"><div class="label">배울 점 ①</div><p class="small" style="margin:0">문제와 해결의 연결은 좋다. 다만 <strong>문제의 근거는 더 강해야</strong> 한다 — 구체적인 차량 이용 상황과 잇고, 가능하면 직접 관찰·인터뷰로 확인한다.</p></div>
+    <div class="box soft"><div class="label">배울 점 ②</div><p class="small" style="margin:0"><strong>실제로 작동한다는 증거</strong>가 가장 설득력 있다. 우리는 실제 앱 화면, SDK 호출 근거, 시연 결과로 보여 준다. 수치에는 측정 기간과 정의를 붙인다.</p></div>
+    <div class="box soft"><div class="label">배울 점 ③</div><p class="small" style="margin:0">사업성·성장성 설명은 <strong>압축</strong>한다. 그 지면을 "왜 차량에서 써야 하는가"와 "경험이 어떻게 달라지는가"에 쓴다.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">03</span>새 스토리라인과 12쪽 구성</h2>
+  <div class="flow">
+    <div class="step"><b>Problem</b><span>해결할 불편<br>실제로 있고 중요한가</span></div><div class="arrow">→</div>
+    <div class="step"><b>Opportunity</b><span>차량만의 기회<br>모바일이 못 푸는 이유</span></div><div class="arrow">→</div>
+    <div class="step"><b>Solution</b><span>새로운 차량 경험<br>무엇을 어떻게 바꾸나</span></div><div class="arrow">→</div>
+    <div class="step"><b>Feasibility</b><span>실제 구현<br>Pleos SDK로 검증했나</span></div><div class="arrow">→</div>
+    <div class="step"><b>Growth</b><span>사업성과 확장<br>누가 반복해서 쓰나</span></div>
+  </div>
+  <p class="caption">기존 사업계획서보다 <strong>차량이라는 플랫폼이 주는 가치</strong>와 <strong>실제 구현 증거</strong>를 앞쪽으로 가져온 흐름입니다.</p>
+
+  <table>
+    <tr><th class="c" style="width:7%">쪽</th><th style="width:23%">섹션</th><th>반드시 전달할 핵심 메시지</th><th style="width:19%">받치는 심사 항목</th></tr>
+    <tr><td class="c">01</td><td>Executive Summary</td><td>누구의 어떤 문제를 푸는 차량용 앱인지 한눈에</td><td>전체 (첫인상)</td></tr>
+    <tr><td class="c">02</td><td>Problem Definition</td><td>어떤 운전자·동승자가 어떤 상황에서 불편을 겪는가</td><td>창의성 · 사업성</td></tr>
+    <tr><td class="c">03</td><td>Problem Validation</td><td>그 불편이 얼마나 중요한지, 실제 근거가 있는가</td><td>창의성 · 사업성</td></tr>
+    <tr class="key"><td class="c"><strong>04</strong></td><td><strong>Why In-Car?</strong> <span class="tag must">승부처</span></td><td>모바일보다 차량 환경에서 풀 때 무엇이 더 좋은가</td><td>차량 특화성</td></tr>
+    <tr><td class="c">05</td><td>Solution &amp; Value</td><td>우리의 해결책과 핵심 차별 가치는 무엇인가</td><td>창의성</td></tr>
+    <tr class="key"><td class="c"><strong>06</strong></td><td><strong>User Journey</strong> <span class="tag must">승부처</span></td><td>차량 이용 상황에서 기능이 실제로 어떻게 작동하는가</td><td>차량 특화성 · 창의성</td></tr>
+    <tr class="key"><td class="c"><strong>07</strong></td><td><strong>Core Features &amp; UX</strong> <span class="tag must">승부처</span></td><td>핵심 기능, 차량 화면, 주행·정차별 사용 경험</td><td>차량 특화성</td></tr>
+    <tr class="key"><td class="c"><strong>08</strong></td><td><strong>Technical Architecture</strong> <span class="tag must">승부처</span></td><td>차량 데이터에서 화면 출력까지 어떻게 이어지는가</td><td>기술 활용성</td></tr>
+    <tr class="key"><td class="c"><strong>09</strong></td><td><strong>Feasibility &amp; Proof</strong> <span class="tag must">승부처</span></td><td>실제 구현 수준, SDK 활용, 시연·검증 결과</td><td>기술 활용성</td></tr>
+    <tr><td class="c">10</td><td>Competitive Advantage</td><td>기존 차량 기능·모바일 서비스와 무엇이 다른가</td><td>창의성 · 차량 특화성</td></tr>
+    <tr><td class="c">11</td><td>Business &amp; Growth</td><td>타깃 고객, 이용 빈도, MAU, 리텐션, 확대 가능성</td><td>사업성</td></tr>
+    <tr><td class="c">12</td><td>Execution &amp; Risk</td><td>개발 로드맵, 주요 리스크 대응, 팀 실행 역량</td><td>실현 가능성</td></tr>
+  </table>
+
+  <h3>권장 설득 비중</h3>
+  <div class="wbar">
+    <div style="width:15%;background:#C69B62">문제 15</div>
+    <div style="width:20%;background:#277BBD">차량 특화 20</div>
+    <div style="width:20%;background:#46A3B8">솔루션·경험 20</div>
+    <div style="width:20%;background:#7B85CD">기술 구현 20</div>
+    <div style="width:8%;background:#8a919c">경쟁 8</div>
+    <div style="width:12%;background:#b98a52">사업 12</div>
+    <div style="width:5%;background:#4a515c">5</div>
+  </div>
+  <p class="caption">문제 정의·검증 15% · 차량 특화 가치 20% · 솔루션과 사용자 경험 20% · 기술 구현과 검증 20% · 경쟁 우위 8% · 사업성과 성장 12% · 개요·실행 계획·리스크 5%.
+  공식 배점이 아닌 권장안이며, 쪽수와 꼭 일치할 필요는 없습니다. 12쪽은 내부 설득용 구성이고 공식 접수양식의 쪽수·문항을 뜻하지 않습니다.</p>
+</section>
+
+<section class="page-break">
+  <h2><span class="num">04</span>승부처 작성 기준</h2>
+
+  <div class="avoid">
+  <h3>04쪽 — Why In-Car? <span class="muted small">가장 중요한 승부처</span></h3>
+  <p>참고 문서가 병원과 서비스를 비교했듯, 우리는 <strong>모바일에서 겪는 방식과 차 안에서 겪는 방식</strong>을 같은 상황 위에서 직접 비교합니다.</p>
+  <table>
+    <tr><th style="width:18%">비교 기준</th><th>기존 이용 방식</th><th>우리가 제안하는 차량용 방식</th></tr>
+    <tr><td>문제 발생 상황</td><td>지금 고객이 문제를 겪는 구체적인 순간</td><td>같은 상황에서 앱을 쓰는 모습</td></tr>
+    <tr><td>사용자 조작</td><td>기존 서비스에서 필요한 행동</td><td>새 앱으로 줄어드는 조작</td></tr>
+    <tr><td>활용 데이터</td><td>기존 방식이 접근할 수 있는 정보</td><td>쓸 수 있는 Pleos 차량 데이터</td></tr>
+    <tr><td>경험의 차이</td><td>지금 풀리지 않는 불편</td><td>나아지는 시간·편의·안전·만족</td></tr>
+    <tr><td>차량만의 이점</td><td>모바일 이용의 한계</td><td>차량 환경이 주는 독자적 가치</td></tr>
+  </table>
+  <div class="box accent">
+    <div class="label">주의</div>
+    <p style="margin:0"><strong>차량 API를 쓴다는 사실 자체가 차별점이 되어서는 안 됩니다.</strong> 그 차량 데이터가 <strong>어떤 문제를 풀기 때문에 필요한지</strong>까지 설명합니다.
+    그리고 세 질문에 답합니다 — ① 차량 데이터가 없으면 핵심 기능의 가치가 얼마나 떨어지는가 ② 주행·정차에 따라 경험이 달라지는가 ③ 주의 분산을 줄이면서 가치를 주는가.</p>
+  </div>
+  </div>
+
+  <div class="avoid">
+  <h3>06–07쪽 — User Journey &amp; UX</h3>
+  <p>화면을 나열하지 말고 <strong>고객의 여정</strong>을 보여 줍니다. 실제 인포테인먼트 화면을 놓고, 화면마다 어떤 행동이 일어나는지 표시합니다.</p>
+  <div class="flow">
+    <div class="step"><b>상황 발생</b><span>고객의 불편</span></div><div class="arrow">→</div>
+    <div class="step"><b>서비스 작동</b><span>핵심 기능 실행</span></div><div class="arrow">→</div>
+    <div class="step"><b>문제 해결</b><span>고객 가치 획득</span></div>
+  </div>
+  <ul>
+    <li>단계마다 <strong>기존 불편 · 사용자 행동 · 차와 앱의 동작(쓰인 SDK) · 얻는 가치</strong>를 함께 적는다.</li>
+    <li><strong>주행 중 가능한 행동</strong>과 <strong>정차 시에만 허용하는 행동</strong>, 주의 분산을 줄이는 설계를 함께 보여 준다.</li>
+    <li>기획서의 여정 = 시연 영상의 흐름 = 저장소 README의 재현 절차.</li>
+  </ul>
+  </div>
+
+  <div class="avoid">
+  <h3>08–09쪽 — 기술 구조와 검증</h3>
+  <p>개발자가 직접 검증하는 부분입니다. 클래스 다이어그램이 아니라 <strong>데이터가 흘러 결과가 되는 과정</strong>을 그립니다.</p>
+  <div class="flow">
+    <div class="step"><b>차량 환경 · 사용자 입력</b><span>Vehicle · 위치 · 음성 등<br>실제로 쓰는 인터페이스</span></div><div class="arrow">→</div>
+    <div class="step"><b>앱 핵심 처리 로직</b><span>조건 판단 · 데이터 처리<br>필요하면 외부 서비스 연동</span></div><div class="arrow">→</div>
+    <div class="step"><b>차량 화면 · 음성 출력</b><span>고객에게 전달되는<br>실제 결과</span></div>
+  </div>
+  <ul>
+    <li>도식에는 <strong>실제 앱이 쓰는 인터페이스만</strong> 넣는다. SDK별 지원 범위는 공식 문서 기준으로 확인한다.</li>
+    <li>"구현 완료"라고만 쓰지 않고 <strong>어떤 테스트 환경에서 어떤 결과를 확인했는지</strong> 적는다.</li>
+    <li>구현 상태는 셋으로 나눈다 — <span class="tag done">구현 완료</span> <span class="tag proto">프로토타입</span> <span class="tag plan">개발 예정</span>. 끝내지 않은 기능을 구현했다고 쓰면 2차 시연에서 오히려 불리하다.</li>
+  </ul>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">05</span>나머지 쪽 작성 기준</h2>
+  <table>
+    <tr><th style="width:23%">쪽</th><th>담을 내용</th><th style="width:30%">피할 것</th></tr>
+    <tr><td><strong>01</strong> Executive Summary</td><td>앱 이름과 한 문장 정의, 대표 화면, Problem → Growth 다섯 줄 요약, 현재 구현 상태</td><td>기능 나열, "플랫폼"·"AI" 같은 넓은 말</td></tr>
+    <tr><td><strong>02</strong> Problem Definition</td><td>고객을 이용 상황으로 정의, 문제가 생기는 순간, 지금의 해결 방법과 한계, 근본 원인</td><td>인구통계만으로 고객 정의</td></tr>
+    <tr><td><strong>03</strong> Problem Validation</td><td>공개 통계(출처·시점), 불편의 크기, 직접 한 인터뷰·설문(응답 수와 함께)</td><td>출처 없는 수치, 소수 응답의 일반화</td></tr>
+    <tr><td><strong>05</strong> Solution &amp; Value</td><td>해결 원리 한 줄, 핵심 가치 2~3개를 주장 → 근거 → 고객 가치로, 실측 예</td><td>기능 목록으로 가치를 대신하기</td></tr>
+    <tr><td><strong>10</strong> Competitive Advantage</td><td>모바일 앱·차량 기본 기능·유사 서비스와의 비교표, 겹치는 부분도 인정, 구조적으로 따라오기 어려운 이유</td><td>"경쟁자 없음" 단정</td></tr>
+    <tr><td><strong>11</strong> Business &amp; Growth</td><td>초기 고객, App Market에서의 획득 경로, 예상 MAU(가정 시나리오), 리텐션 계기와 측정 계획, 확대 단계</td><td>LTV/CAC, 5년 매출 전망</td></tr>
+    <tr><td><strong>12</strong> Execution &amp; Risk</td><td>MVP → 검증 → 고도화 로드맵(1차 제출·2차 PT 시점 구분), 리스크와 대응, 팀 역할</td><td>리스크를 숨기기</td></tr>
+  </table>
+  <div class="formula">예상 MAU = 도달 가능 고객 × 설치 전환율 × 월간 활성화율</div>
+  <p class="small muted">실제 사용자가 아직 없다면 수익 예측보다 <strong>사용자가 언제 다시 쓰는지</strong>를 논리적으로 보이는 것이 먼저입니다.</p>
+</section>
+
+<section class="page-break">
+  <h2><span class="num">06</span>작성 원칙</h2>
+
+  <div class="box dark">
+    <div class="label">모든 섹션에 적용</div>
+    <p style="margin:0;font-size:12pt"><strong>주장 → 근거 → 고객 가치</strong></p>
+    <p class="muted" style="margin:1.5mm 0 0">"차량 특화 기능이 있습니다"에서 끝내지 않는다. 차량 SDK로 <strong style="color:#fff">어떤 데이터</strong>를 쓰는지,
+    앱이 그 데이터를 <strong style="color:#fff">어떻게 처리</strong>하는지, 그 결과 사용자의 <strong style="color:#fff">불편이 어떻게 줄어드는지</strong>까지 잇는다.</p>
+  </div>
+
+  <h3>정보의 종류를 구분한다</h3>
+  <table>
+    <tr><th style="width:24%">정보 종류</th><th>표현 방식</th><th style="width:22%">기획서 표기</th></tr>
+    <tr><td><strong>검증된 사실</strong></td><td>직접 측정한 결과와 출처를 밝힌다. 수치에는 기준 시점을 붙인다</td><td><span class="k fact">사실</span></td></tr>
+    <tr><td><strong>구현된 기능</strong></td><td>코드와 시연 근거를 제시한다. 확인한 환경을 적는다</td><td><span class="k impl">구현</span></td></tr>
+    <tr><td><strong>가정과 목표</strong></td><td>예상 수치와 가정 조건을 분명히 표시한다</td><td><span class="k asm">가정</span></td></tr>
+  </table>
+
+  <div class="grid2">
+    <div class="box">
+      <div class="label">해야 할 것</div>
+      <ul style="margin:0">
+        <li>고객 문제 → 차량이어야 하는 이유 → 경험 → 구현 근거 → 사업성 순서로 쓴다</li>
+        <li>쪽마다 맨 위에 <strong>핵심 메시지 한 문장</strong>을 둔다</li>
+        <li><strong>한 쪽 = 메시지 1개 + 도식·화면 1개 + 짧은 근거.</strong> 문단 대신 도식, 큰 숫자, ●/— 비교표를 쓴다</li>
+        <li>모든 기술 주장은 코드·테스트·시연으로 뒷받침한다</li>
+        <li>주행 중/정차 중 기능을 나눠 안전 설계를 드러낸다</li>
+        <li>핵심 가치 <strong>한 가지</strong>를 확실히 납득시킨다</li>
+      </ul>
+    </div>
+    <div class="box">
+      <div class="label">피할 것</div>
+      <ul style="margin:0">
+        <li>고객 문제를 정의하기 전에 기술 구조부터 설명하기</li>
+        <li>기능 목록을 길게 나열하기</li>
+        <li>출처 없는 시장 규모·만들어낸 수요 수치</li>
+        <li>미완성 기능을 "구현 완료"로 쓰기</li>
+        <li>스마트폰으로도 똑같이 되는 기능을 핵심으로 내세우기</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">07</span>공식 접수양식에 옮기는 방법</h2>
+  <ul>
+    <li><strong>공식 접수양식 자체가 기획서</strong>입니다. 자유양식 12쪽 문서는 필수가 아닙니다.</li>
+    <li>시연 영상·GitHub 저장소(APK)는 선택 제출물이며, 구현 산출물에는 <strong>가산점</strong>이 있습니다.</li>
+  </ul>
+  <div class="grid2">
+    <div class="box soft">
+      <div class="label">1단계 — 내부 마스터 기획서</div>
+      <p style="margin:0">12쪽 구조로 문제 정의, 고객 경험, 기술 구현 근거, 사업성을 정리하고 <strong>논리가 끝까지 이어지는지</strong> 확인한다.</p>
+    </div>
+    <div class="box soft">
+      <div class="label">2단계 — 공모전 제출본</div>
+      <p style="margin:0">완성한 내용을 <strong>공식 양식의 문항에 맞춰 옮기고 압축</strong>한다. 시연 영상·GitHub·APK와 내용을 맞춘다.</p>
+    </div>
+  </div>
+  <h3>공식 접수양식 「02 앱 프로젝트 소개 / 심사 자료」 문항과 12쪽의 대응</h3>
+  <table>
+    <tr><th style="width:32%">양식 문항</th><th style="width:19%">대응 심사 항목</th><th style="width:13%">가져올 쪽</th><th>쓰는 요령</th></tr>
+    <tr><td><strong>1. 앱 한 줄 소개</strong> <span class="muted small">(한 줄 칸)</span></td><td>전체</td><td>01</td><td>한 문장 정의를 그대로</td></tr>
+    <tr><td><strong>2. 기획 배경</strong><br><span class="muted small">어떤 고객의 니즈·불편에 주목했고 왜 해결이 필요한가</span></td><td>창의성 (Pain Points &amp; Needs)</td><td>02 · 03</td><td>문제의 순간 → 세 사람의 불편 → 기존 방법의 한계 → 근거 수치</td></tr>
+    <tr><td><strong>3. 앱 주요 기능 및 차량 특화 요소</strong><br><span class="muted small">핵심 기능, 해결하는 문제, 차량에서의 새 경험</span></td><td>차량특화성</td><td>04 · 05 · 07 · 10</td><td>핵심 기능 3개 + 차량 데이터가 왜 필요한지 + 주행/정차 구분</td></tr>
+    <tr><td><strong>4. 주요 사용 시나리오</strong><br><span class="muted small">누가, 어떤 상황에서, 어떻게</span></td><td>차량특화성 · 창의성</td><td>06</td><td>네 단계 여정과 동승자 쪽 흐름</td></tr>
+    <tr><td><strong>5. 개발 계획</strong><br><span class="muted small">구현 범위와 SDK/API 사용계획을 구체적으로</span></td><td>기술 활용성</td><td>08 · 09 · 12</td><td>SDK별 쓰는 API와 쓰임, 구현 상태, 검증 환경, 로드맵</td></tr>
+    <tr><td><strong>6. 기대효과 및 발전 가능성</strong> <span class="muted small">(한 줄 칸)</span><br><span class="muted small">타깃 고객 분석, 예상 MAU, Retention Rate, 확대 계획</span></td><td>사업성</td><td>11</td><td>괄호 속 네 가지를 그 순서대로 한 문단에</td></tr>
+    <tr><td><strong>7. 참고자료</strong> <span class="muted small">(선택 · 가산점)</span></td><td>가산점</td><td>—</td><td>12쪽 기획서 PDF(별지), 시연 영상, GitHub 저장소 링크</td></tr>
+    <tr><td><strong>8. 숏폼 링크</strong> <span class="muted small">(선택 · 가산점 없음)</span></td><td>—</td><td>—</td><td>별도 특별상. 참여할 때만</td></tr>
+  </table>
+  <div class="box accent">
+    <div class="label">양식을 채울 때 지켜야 할 것 (공식 양식·안내 기준)</div>
+    <ul style="margin:0">
+      <li><strong>심사 자료에는 이름·연락처·이메일·소속을 쓰지 않는다.</strong> 공유 링크와 첨부 자료에도 개인정보·계정정보·개발자 실명이 드러나지 않게 한다.</li>
+      <li>답변 칸은 <strong>글자만</strong> 들어간다(표·그림 불가). 1·6·7·8번 칸은 줄바꿈도 되지 않는다. 도식과 화면은 별지(12쪽 PDF)로 낸다.</li>
+      <li>분량 제한은 없고 별지를 붙일 수 있다. 마감은 2026.11.15(일) 23:59, 이메일 접수.</li>
+      <li>APK는 메일 첨부가 아니라 <strong>GitHub 저장소</strong>로 낸다 — <code>apk/</code> 폴더, 파일명 <code>팀명_앱이름_release.apk</code>, README(한 줄 소개·실행 방법·테스트 환경·APK 위치). 비공개 저장소면 심사용 계정을 초대한다.</li>
+      <li>검증은 에뮬레이터 기준이다. 2차 PT에서 실차 시연은 지원되지 않는다.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="avoid">
+  <h2><span class="num">08</span>제출 전 자체 점검</h2>
+  <ul class="check">
+    <li>서비스를 읽고 30초 안에 어떤 앱인지 이해할 수 있는가? (01)</li>
+    <li>해결할 문제가 실제 고객에게 존재한다는 근거가 있는가? (03)</li>
+    <li>스마트폰 앱 대비 차량에서의 독자적 장점이 입증되는가? 차량 데이터가 "왜" 필요한지까지 썼는가? (04)</li>
+    <li>대표 사용 시나리오가 시작부터 결과까지 완결되는가? (06)</li>
+    <li>SDK 활용 방식과 구현 상태가 코드·시연물과 일치하는가? 확인한 환경을 적었는가? (08–09)</li>
+    <li>기존 서비스와 겹치는 부분을 인정하고, 그래도 다른 점을 보였는가? (10)</li>
+    <li>예상 사용자 규모, 이용 빈도, 재방문 이유가 구체적인가? (11)</li>
+    <li>운전 안전, 개인정보, 구현 제약에 대한 대응이 있는가? (12)</li>
+    <li>사실·구현·가정이 구분되어 있고, "기입 필요" 표시가 남아 있지 않은가?</li>
+  </ul>
+</section>
+
+<section class="avoid">
+  <h2><span class="num">09</span>남은 기간 작업 순서</h2>
+  <table>
+    <tr><th style="width:14%">날짜</th><th>작업</th><th style="width:30%">산출물</th></tr>
+    <tr><td>11/10</td><td>구조 재설계(7항목 → 가로 12쪽), 공개 통계·경쟁 서비스·공식 양식 조사 반영</td><td>12쪽 마스터 기획서 v2</td></tr>
+    <tr><td>11/11</td><td>지인 인터뷰·설문 → 03쪽 채우기, 팀 정보 기입</td><td>문제 검증 근거</td></tr>
+    <tr><td>11/12</td><td>시연 영상 촬영 (06쪽의 네 단계 그대로)</td><td>시연 영상</td></tr>
+    <tr><td>11/13</td><td>GitHub 저장소 정리 — README, <code>apk/</code> 폴더의 release APK, 심사용 계정 초대(비공개일 때). 충전 단가를 2026.8 개편 요금으로 갱신</td><td>제출 가능한 저장소</td></tr>
+    <tr><td>11/14</td><td>마스터 기획서 → 공식 접수양식 6개 문항으로 옮기기, 동의서 서명, 이름·계정 노출 점검</td><td>제출 가능 최종본</td></tr>
+    <tr><td>11/15</td><td>최종 제출 및 수신 확인</td><td>접수 완료</td></tr>
+  </table>
+  <div class="box dark">
+    <div class="label">한 줄 요약</div>
+    <p style="margin:0">1차 서류의 목표는 모든 기능을 설명하는 것이 아니라, <strong>핵심 가치 하나</strong>를
+    <strong>차량의 데이터·맥락</strong>과 묶어 스마트폰 앱과 구별하고, <strong>이미 동작하는 코드와 시연</strong>으로 아이디어가 아님을 보여주는 것입니다.</p>
+  </div>
+  <p class="footer-note">공식 일정·심사 항목은 appdevchallenge.auto-hmg.io 공지 기준. 작성 비중은 공식 배점이 아닌 작성 전략입니다.</p>
+</section>
+
+</body>
+</html>

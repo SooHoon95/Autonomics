@@ -1,0 +1,785 @@
+<title>AUTONOMICS 기획서</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* 레이아웃: 한 열 문서, 넓은 화면에서는 760px 본문 + 스크린샷은 옆 열 */
+:root {
+  --bg: #fbfaf8; --surface: #f2f1ee; --ink: #16181c; --ink-2: #4b5059; --ink-3: #868b94;
+  --line: #e4e2dd; --accent: #e8930c; --accent-ink: #9a5d00; --accent-soft: #fff4e0;
+  --dark: #1b2029; --dark-ink: #f4f2ee; --dark-muted: #aab1bc;
+  --ok-bg: #e2f3e8; --ok: #1d7c45; --warn-bg: #fdefd6; --warn: #9c5c00; --plan-bg: #ebecee; --plan: #4b5059; --must-bg: #ffe4cf; --must: #a8430a;
+  --w1: #277BBD; --w2: #46A3B8; --w3: #7B85CD; --w4: #C69B62;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-display: "Gothic A1", "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111317; --surface: #1b1e24; --ink: #eceae6; --ink-2: #b8bcc4; --ink-3: #868b94;
+  --line: #2b2f37; --accent: #f5a524; --accent-ink: #f5b54a; --accent-soft: #2a2114;
+  --dark: #222732; --dark-ink: #f4f2ee; --dark-muted: #aab1bc;
+  --ok-bg: #16301f; --ok: #6fd39a; --warn-bg: #33260f; --warn: #f2bd5c; --plan-bg: #262a31; --plan: #b8bcc4; --must-bg: #3a2213; --must: #ff9f63;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #111317; --surface: #1b1e24; --ink: #eceae6; --ink-2: #b8bcc4; --ink-3: #868b94;
+  --line: #2b2f37; --accent: #f5a524; --accent-ink: #f5b54a; --accent-soft: #2a2114;
+  --dark: #222732; --dark-ink: #f4f2ee; --dark-muted: #aab1bc;
+  --ok-bg: #16301f; --ok: #6fd39a; --warn-bg: #33260f; --warn: #f2bd5c; --plan-bg: #262a31; --plan: #b8bcc4; --must-bg: #3a2213; --must: #ff9f63;
+  color-scheme: dark }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
+.page { max-width: 820px; margin: 0 auto; padding-block: 8px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+nav.tabs { display: flex; gap: 6px; padding: 10px 0 18px; }
+nav.tabs a { text-decoration: none; color: var(--ink-2); font-weight: 600; font-size: 14px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); }
+nav.tabs a[aria-current="page"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+nav.tabs a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.35; margin: 0; text-wrap: balance; }
+h2 { font-size: 22px; font-weight: 800; margin: 44px 0 14px; padding-bottom: 10px; border-bottom: 2px solid var(--ink); display: flex; gap: 10px; align-items: baseline; }
+h2 .num { color: var(--accent); }
+h3 { font-size: 17px; font-weight: 700; margin: 26px 0 8px; }
+h4 { font-size: 15.5px; font-weight: 700; margin: 0 0 6px; }
+p { margin: 0 0 10px; }
+ul, ol { margin: 0 0 10px; padding-left: 20px; }
+li { margin: 3px 0; }
+a { color: var(--accent-ink); }
+
+.cover { padding: 8px 0 8px; }
+.cover .top { font-size: 12px; color: var(--ink-3); letter-spacing: .02em; }
+.cover .title { font-family: var(--font-display); font-size: clamp(34px, 9vw, 54px); font-weight: 800; letter-spacing: -.01em; line-height: 1.1; margin: 14px 0 10px; }
+.cover .sub { font-size: 18px; color: var(--ink-2); font-weight: 500; line-height: 1.5; }
+.cover .sub span { font-size: 14px !important; color: var(--ink-3) !important; }
+.cover .bar { width: 56px; height: 4px; background: var(--accent); margin: 22px 0; border-radius: 2px; }
+.cover .lead { max-width: none !important; }
+.meta-table { border-collapse: collapse; margin-top: 18px; font-size: 13.5px; }
+.meta-table td { padding: 4px 16px 4px 0; vertical-align: top; border: 0; }
+.meta-table td:first-child { color: var(--ink-3); white-space: nowrap; }
+
+.lead { font-size: 16.5px; color: var(--ink-2); }
+.muted { color: var(--ink-3); } .small { font-size: 13.5px; }
+.caption, .cap { font-size: 12.5px; color: var(--ink-3); margin: 6px 0 14px; line-height: 1.55; }
+
+.tw { overflow-x: auto; margin: 6px 0 14px; -webkit-overflow-scrolling: touch; }
+.tw table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 13.5px; }
+th, td { border-bottom: 1px solid var(--line); padding: 8px 9px; text-align: left; vertical-align: top; }
+th { background: var(--surface); color: var(--ink-2); font-weight: 700; }
+td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; } td.c, th.c { text-align: center; }
+td { font-variant-numeric: tabular-nums; }
+
+.box { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 10px 0 14px; min-width: 0; }
+.box.soft { background: var(--surface); border-color: var(--surface); }
+.box.accent { background: var(--accent-soft); border-color: transparent; border-left: 4px solid var(--accent); border-radius: 4px 12px 12px 4px; }
+.box.dark { background: var(--dark); color: var(--dark-ink); border-color: var(--dark); }
+.box.dark .muted { color: var(--dark-muted); }
+.box .label { font-size: 11.5px; font-weight: 700; letter-spacing: .05em; color: var(--ink-3); margin-bottom: 6px; }
+.box.dark .label { color: var(--accent); }
+.box p:last-child, .box ul:last-child, .box ol:last-child { margin-bottom: 0; }
+
+.grid2, .grid3 { display: grid; gap: 12px; grid-template-columns: 1fr; margin: 10px 0 14px; }
+.grid2 > *, .grid3 > * { margin: 0 !important; min-width: 0; }
+@media (min-width: 640px) { .grid2 { grid-template-columns: 1fr 1fr; } .grid3 { grid-template-columns: 1fr 1fr 1fr; } }
+
+.tag { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 1px 9px; border-radius: 999px; white-space: nowrap; }
+.tag.done { background: var(--ok-bg); color: var(--ok); } .tag.proto { background: var(--warn-bg); color: var(--warn); }
+.tag.plan { background: var(--plan-bg); color: var(--plan); } .tag.must { background: var(--must-bg); color: var(--must); }
+
+.flow { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
+.flow .step { flex: 1 1 130px; background: var(--surface); border-radius: 10px; padding: 10px 12px; text-align: center; min-width: 0; }
+.flow .step b { display: block; font-size: 14.5px; } .flow .step span { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; display: block; }
+.flow .arrow { display: none; }
+
+.weights { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin: 8px 0 4px; }
+.weights div:nth-child(1) { background: var(--w1) !important; } .weights div:nth-child(2) { background: var(--w2) !important; }
+.weights div:nth-child(3) { background: var(--w3) !important; } .weights div:nth-child(4) { background: var(--w4) !important; }
+
+.shot, .st-shot img, .shots2 img { width: 100%; max-width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); display: block; }
+.shot-wrap { margin: 10px 0 14px; }
+.shots2 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 640px) { .shots2 { grid-template-columns: 1fr 1fr; } }
+
+.scenario .st { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 4px 12px; padding: 18px 0; border-bottom: 1px solid var(--line); counter-increment: st; }
+.scenario { counter-reset: st; }
+.scenario .st:last-child { border-bottom: 0; }
+.scenario .st .n { width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: var(--bg); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; grid-row: span 2; }
+.scenario .st .n::before { content: counter(st); }
+.scenario .st > div:nth-child(2) { min-width: 0; }
+.scenario .st-shot { grid-column: 2; margin-top: 10px; display: grid; gap: 10px; }
+.scenario .kv { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 4px 10px; font-size: 14px; margin: 0; }
+.scenario .kv dt { color: var(--ink-3); font-weight: 600; } .scenario .kv dd { margin: 0; }
+@media (max-width: 480px) { .scenario .kv { grid-template-columns: 1fr; gap: 0; } .scenario .kv dd { margin-bottom: 6px; } }
+
+.check { padding-left: 0; } .check li { list-style: none; position: relative; padding-left: 26px; }
+.check li::before { content: "☐"; position: absolute; left: 0; color: var(--ink-3); }
+.formula { font-size: 15px; font-weight: 600; text-align: center; padding: 12px; background: var(--surface); border-radius: 10px; margin: 10px 0 12px; }
+.footer-note { font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 24px; }
+code { font-family: var(--font-mono); font-size: 12.5px; background: var(--surface); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.arch { font-family: var(--font-mono); font-size: 12px; background: var(--surface); border-radius: 10px; padding: 12px 14px; white-space: pre; line-height: 1.6; overflow-x: auto; min-width: 0; }
+.kpi { display: none; }
+.dl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 8px; }
+.dl button { font: inherit; font-weight: 700; font-size: 14.5px; padding: 11px 16px; border-radius: 10px; border: 0; background: var(--accent); color: #1b1407; cursor: pointer; flex: 1 1 180px; }
+.dl button + button { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.dl button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.dl-msg { flex-basis: 100%; margin: 0; font-size: 13px; color: var(--ink-3); min-height: 1em; }
+section { scroll-margin-top: 12px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+<div class="page">
+  <nav class="tabs" aria-label="문서">
+    <a href="#proposal" data-view="proposal">기획서</a>
+    <a href="#guideline" data-view="guideline">작성 가이드라인</a>
+  </nav>
+  <div class="dl" aria-label="PDF 받기">
+    <button type="button" id="dl-proposal" data-src="pdf/autonomics-proposal.pdf" data-name="AUTONOMICS_기획서.pdf">기획서 PDF 받기</button>
+    <button type="button" id="dl-guideline" data-src="pdf/proposal-guideline.pdf" data-name="기획서_가이드라인.pdf">가이드라인 PDF 받기</button>
+    <p class="dl-msg" id="dl-msg" role="status"></p>
+  </div>
+  <article id="view-proposal">
+
+<!-- 표지 -->
+<div class="cover">
+  <div class="top">2026 현대자동차그룹 차량용 앱 개발 공모전 · Code your App into Pleos App Market · 기획서</div>
+  <div>
+    <div class="title">AUTONOMICS</div>
+    <div class="sub">함께 탄 만큼, 차가 실제로 쓴 만큼.<br>
+      <span style="font-size:11.5pt;color:var(--ink-3)">Pleos 차량 데이터로 실제 소모한 연료·전기 값을 탑승 구간별로 나누는 차량용 정산 앱</span></div>
+    <div class="bar"></div>
+    <div class="shot-wrap hero-shot">
+      <img class="shot" src="img/result.jpg" alt="정산 완료 화면">
+      <div class="cap">실제 Pleos SDK로 기록한 정산 완료 화면 (Pleos Connect 에뮬레이터 · 아이오닉 5). 9.8km · 2.34kWh 실측 · 3명 중 1명 중간 하차</div>
+    </div>
+  </div>
+  <table class="meta-table">
+    <tr><td>플랫폼</td><td>Pleos Connect (Android Automotive OS, API 34) · Kotlin + Jetpack Compose</td></tr>
+    <tr><td>사용 Pleos SDK</td><td>Vehicle 2.3.2 · NaviHelper 3.0.5 · SpeechToText 3.3.1 (+ AAOS CarPropertyManager)</td></tr>
+    <tr><td>개발 상태</td><td>핵심 기능 구현·에뮬레이터 검증 완료 · 도메인 단위 테스트 46개 통과</td></tr>
+    <tr><td>제출일</td><td>2026.11.15</td></tr>
+  </table>
+</div>
+
+<!-- ① -->
+<section>
+  <h2><span class="num">①</span>서비스 핵심 제안</h2>
+
+  <div class="box dark">
+    <div class="label">한 문장 정의</div>
+    <p style="font-size:12pt;margin:0;line-height:1.5"><strong>함께 차를 탄 사람들이, 차가 실제로 쓴 연료·전기 값을 각자 탄 구간만큼 나눠 내도록 —
+    운전자가 계산하지 않아도 내리는 순간 금액이 확정되는 서비스.</strong></p>
+  </div>
+
+  <div class="tw"><table>
+    <tr><th style="width:20%">핵심 타깃</th><td>친구·지인·동료를 태우고 이동하는 운전자 (여행, 귀성, 출퇴근 카풀, 중간에 사람을 내려주는 이동)</td></tr>
+    <tr><th>해결하는 문제</th><td>기름값·충전비를 "얼마씩" 받아야 할지 아무도 정확히 모른다. 그래서 대충 나누거나, 먼저 내린 사람도 똑같이 내거나, 운전자가 말을 못 꺼내고 손해를 본다.</td></tr>
+    <tr><th>기존 방식과 차이</th><td>더치페이 앱은 <strong>총액을 사람이 입력</strong>해야 나눠 준다. 그런데 이번 이동에 든 연료비 총액은 아무도 모른다.
+      AUTONOMICS는 그 총액을 <strong>차가 직접 잰다</strong> — 배터리·연료 잔량과 주행거리계로 실제 소모량을 기록하고, 오늘 유가·충전 단가를 곱해,
+      <strong>탑승 구간마다 그때 차에 있던 사람끼리</strong> 나눈다.</td></tr>
+    <tr><th>보조 가치</th><td><strong>솔로 모드</strong> — 혼자 탈 때는 같은 실측 데이터로 구간별 실제 전비·연비와 비용을 보여 준다. 매 운전마다 열 이유가 된다.</td></tr>
+  </table></div>
+</section>
+
+<!-- ② -->
+<section>
+  <h2><span class="num">②</span>타깃 고객과 문제 정의</h2>
+
+  <h3>고객: 인구통계가 아니라 "차에 누가, 어떻게 타는가"로 정의</h3>
+  <div class="tw"><table>
+    <tr><th style="width:26%">이용 상황</th><th>모습</th><th style="width:30%">정산의 어려움</th></tr>
+    <tr><td><strong>A. 여행·귀성 장거리</strong></td><td>친구 2~4명이 한 차로 수십~수백 km 이동. 운전자 차, 운전자 카드로 주유·충전</td><td>금액이 커서 대충 나누기 껄끄럽다</td></tr>
+    <tr><td><strong>B. 정기 카풀</strong></td><td>동료·이웃이 출퇴근을 같이. 매번 타는 사람이 조금씩 다름</td><td>소액이 반복돼 계산·청구가 귀찮다</td></tr>
+    <tr><td><strong>C. 경유·중간 하차</strong></td><td>가는 길에 한 명을 먼저 내려 주거나, 중간에 한 명을 더 태움</td><td>"누가 어디까지 탔는지"를 계산할 방법이 없다</td></tr>
+  </table></div>
+
+  <h3>문제가 생기는 순간</h3>
+  <div class="flow">
+    <div class="step"><b>출발 전</b><span>얼마 받을지 모른다<br>"나중에 정산하자"</span></div><div class="arrow">→</div>
+    <div class="step"><b>중간 하차</b><span>내리는 사람 몫을<br>그 자리에서 못 정한다</span></div><div class="arrow">→</div>
+    <div class="step"><b>도착 후</b><span>주유·충전 시점과 이동 구간이<br>달라 영수증이 안 맞는다</span></div><div class="arrow">→</div>
+    <div class="step"><b>며칠 뒤</b><span>운전자가 계산·청구<br>또는 그냥 포기</span></div>
+  </div>
+
+  <h3>지금의 해결 방법과 한계</h3>
+  <div class="tw"><table>
+    <tr><th style="width:24%">현재 방식</th><th>한계</th></tr>
+    <tr><td>"기름값 3만 원씩" 어림 N빵</td><td>실제 소모와 무관. 먼저 내린 사람도 같은 금액 → 불공정하다고 느끼지만 말하기 어렵다</td></tr>
+    <tr><td>주유 영수증 나누기</td><td>주유는 이동 전후에 따로 하고, 남은 연료는 반영되지 않는다. 전기차는 집 충전·급속 충전이 섞여 영수증 자체가 없다</td></tr>
+    <tr><td>공인 연비 × 거리 계산</td><td>시내·고속·정체·공조에 따라 실제 효율이 공인 값과 크게 다르다. 계산을 운전자가 해야 한다</td></tr>
+    <tr><td>더치페이·송금 앱</td><td>나누기·송금은 해 주지만 <strong>나눌 총액</strong>은 사람이 알아내 입력해야 한다</td></tr>
+  </table></div>
+
+  <h3>왜 중요한가</h3>
+  <ul>
+    <li><strong>돈보다 관계 비용:</strong> 금액이 정확하지 않으니 운전자는 청구를 망설이고, 동승자는 얼마를 줘야 할지 몰라 불편하다. 근거 있는 숫자가 이 어색함을 없앤다.</li>
+    <li><strong>공정성:</strong> 탄 거리가 다른 사람에게 같은 금액을 받는 것은 계산이 어려워서일 뿐, 원하는 방식이 아니다.</li>
+    <li><strong>반복성:</strong> 카풀처럼 반복되는 이동에서는 작은 불편이 매번 쌓인다.</li>
+  </ul>
+
+  <div class="box accent">
+    <div class="label">검증 근거 — 제출 전 보강 예정</div>
+    <p style="margin:0 0 1.5mm">현재 근거는 위 상황 분석과 직접 구현·시연 결과다. 제출 전 동승 이동 경험이 있는 지인을 대상으로 짧은 인터뷰·설문을 진행해 결과(응답 수와 함께)를 이 칸에 넣는다.
+    소수 응답은 전체 이용자로 일반화하지 않는다.</p>
+    <p class="small" style="margin:0">질문 예: ① 최근 3개월 동승 이동에서 연료비를 어떻게 나눴나 ② 나눈 금액이 공정했다고 느꼈나 ③ 중간 하차자가 있을 때 어떻게 계산했나 ④ 차가 금액을 계산해 QR로 준다면 쓰겠나</p>
+  </div>
+</section>
+
+<!-- ③ -->
+<section>
+  <h2><span class="num">③</span>차량 특화 가치와 차별성</h2>
+  <p class="lead">"스마트폰 앱으로 만들면 되지 않나?" — <strong>안 된다. 휴대폰은 이 차가 연료·전기를 얼마나 썼는지 모른다.</strong>
+  AUTONOMICS의 금액은 차량 데이터 없이는 계산 자체가 성립하지 않는다.</p>
+
+  <div class="tw"><table>
+    <tr><th style="width:17%">비교</th><th style="width:38%">스마트폰 정산 앱</th><th>AUTONOMICS (Pleos 차량 앱)</th></tr>
+    <tr><td><strong>연료·전기 소모량</strong></td><td>알 수 없음. 영수증·추정치를 사람이 입력</td><td><strong>Vehicle SDK</strong>의 배터리 에너지(kWh)·연료 잔량으로 실측</td></tr>
+    <tr><td><strong>주행거리</strong></td><td>휴대폰 GPS — 앱이 켜져 있어야 하고 터널·배터리 영향</td><td><strong>차량 주행거리계(Odometer)</strong> — 앱이 꺼져 있던 동안의 거리까지 보정</td></tr>
+    <tr><td><strong>승하차 시점</strong></td><td>사람이 기억했다가 나중에 입력</td><td>정차 상태(차속·기어)를 차가 판단 → <strong>정차 중에만</strong> 하차 처리, 그 순간 금액 확정</td></tr>
+    <tr><td><strong>시동 OFF/ON</strong></td><td>무관 (기록은 사람이 이어 붙임)</td><td>시동을 다시 켜면 부팅과 함께 진행 중이던 여행을 <strong>자동으로 이어서</strong> 기록</td></tr>
+    <tr><td><strong>조작</strong></td><td>운전자가 폰을 들어야 함</td><td>주행 중 조작 잠금. 이름은 <strong>음성(SpeechToText)</strong>으로 입력. 결과는 차 화면에 큰 숫자 하나</td></tr>
+    <tr><td><strong>동승자 경험</strong></td><td>모두 같은 앱을 설치해야 함</td><td>차 화면 QR을 폰 카메라로 찍으면 끝 — <strong>동승자는 설치 불필요</strong></td></tr>
+  </table></div>
+
+  <h3>핵심 질문 3가지에 대한 답</h3>
+  <div class="grid3">
+    <div class="box">
+      <div class="label">Q1. 차량 데이터가 없으면?</div>
+      <p class="small" style="margin:0"><strong>핵심 기능이 사라진다.</strong> 금액의 근거인 "실제 소모량"이 없어져 공인 효율 추정치로 떨어진다.
+      그래서 앱은 차가 값을 주지 못한 구간만 공인 효율로 추정하고, 화면에 <strong>실측/추정</strong>을 구분해 표시한다.</p>
+    </div>
+    <div class="box">
+      <div class="label">Q2. 주행·정차에 따라 달라지나?</div>
+      <p class="small" style="margin:0"><strong>그렇다.</strong> 주행 중에는 금액만 실시간으로 보이고 버튼이 잠긴다. 정차하면 하차 정산·동승자 추가·종료가 열린다.
+      솔로 모드는 <strong>2분 이상 정차</strong>, <strong>시내(50km/h 미만)↔고속(80km/h 이상) 전환이 2분 이상</strong> 이어질 때, 지역(시·구)이 바뀔 때 구간을 자동으로 나눈다.</p>
+    </div>
+    <div class="box">
+      <div class="label">Q3. 주의 분산은?</div>
+      <p class="small" style="margin:0"><strong>운전 중 입력 0회.</strong> 이름은 출발 전 음성으로, 하차·탑승은 정차 중에만, QR은 동승자가 찍는다.
+      기록은 포그라운드 서비스가 알아서 하므로 운전자가 화면을 볼 필요가 없다.</p>
+    </div>
+  </div>
+
+  <h3>창의성 — 정산의 단위를 "총액"에서 "탑승 구간"으로</h3>
+  <p>사람이 타고 내릴 때마다 구간이 나뉘고, <strong>각 구간의 실제 비용은 그 구간에 차에 있던 사람끼리만</strong> 나눈다.
+  한 사람의 몫 = Σ(탄 구간의 비용 ÷ 그 구간 인원), 1원 단위. 먼저 내린 사람의 몫은 하차 순간 확정되고, 이후 구간이 남은 사람 금액에 영향을 주지 않는다.</p>
+  <div class="tw"><table>
+    <tr><th>시연 실측 예 (에뮬레이터)</th><th class="r">거리</th><th class="r">전기</th><th class="r">비용</th><th>탄 사람</th><th class="r">1인</th></tr>
+    <tr><td>구간 1 — 3명 출발</td><td class="r">6.3km</td><td class="r">1.54kWh</td><td class="r">535원</td><td>운전자 · 동승자1 · 동승자2</td><td class="r">178원</td></tr>
+    <tr><td>구간 2 — 동승자2 하차 후</td><td class="r">3.5km</td><td class="r">0.80kWh</td><td class="r">276원</td><td>운전자 · 동승자1</td><td class="r">138원</td></tr>
+    <tr><td colspan="5"><strong>결과</strong> — 동승자2 <strong>178원</strong>(하차 때 확정), 운전자·동승자1 각 <strong>316원</strong> (178 + 138)</td><td class="r"><strong>810원</strong></td></tr>
+  </table></div>
+  <p class="caption">에뮬레이터의 배터리 감소는 Virtual Console 속도에 맞춰 물리 모델(공기저항·가속·회생제동·공조)로 움직였고, 앱은 이를 실차와 같은 Pleos SDK로 읽었다. 단가 347.2원/kWh(환경부 공용 급속 고시). "운전자도 나눠 내기"를 끄면 동승자끼리만 나눈다.</p>
+</section>
+
+<!-- ④ -->
+<section>
+  <h2><span class="num">④</span>핵심 기능과 사용자 시나리오</h2>
+  <p><strong>대표 시나리오</strong> — 운전자가 친구 둘을 태우고 출발, 한 명은 가는 길에 내려 주고 나머지와 목적지까지 간다. (아래 화면은 모두 에뮬레이터에서 실제 SDK 값으로 찍은 것)</p>
+
+  <div class="scenario">
+    <div class="st">
+      <div class="n"></div>
+      <div>
+        <h4>출발 전 — "누가 타나요?"</h4>
+        <dl class="kv">
+          <dt>사용자</dt><dd>정산 모드를 누르고, 이름 칸의 마이크를 눌러 동승자 이름을 말한다</dd>
+          <dt>앱</dt><dd>이름이 바로 바뀐다. 차종(전기/휘발유/경유/하이브리드)은 차가 가진 데이터로 판별해 둔 값을 쓰고, 오늘 유가(오피넷 전국 평균)·충전 단가를 출처·날짜와 함께 자동으로 채운다</dd>
+          <dt>데이터·SDK</dt><dd>SpeechToText SDK(온디바이스) · 차종 판별(Vehicle SDK 배터리/연료) · 가격 API(Netlify → 오피넷)</dd>
+          <dt>해결</dt><dd>차 안에서 타이핑 없이 시작. 단가를 찾아볼 필요 없음</dd>
+        </dl>
+      </div>
+        <div class="st-shot"><img src="img/setup.jpg" alt="출발 설정"></div>
+    </div>
+
+    <div class="st">
+      <div class="n"></div>
+      <div>
+        <h4>주행 중 — 보기만 한다</h4>
+        <dl class="kv">
+          <dt>사용자</dt><dd>그냥 운전한다</dd>
+          <dt>앱</dt><dd>총 충전비(주유비)와 1인당 금액이 실시간으로 오른다. 모두 같은 금액이 함께 오른다. 버튼은 잠기고 "정차하면 승하차 처리와 종료를 할 수 있어요"만 보인다</dd>
+          <dt>데이터·SDK</dt><dd>Vehicle SDK 배터리 에너지·연료 잔량·주행거리계·기어 · AAOS 차속 · GPS(지나온 길)</dd>
+          <dt>해결</dt><dd>운전자가 신경 쓰지 않아도 실제 소모량이 쌓인다</dd>
+        </dl>
+      </div>
+        <div class="st-shot"><img src="img/drive2.jpg" alt="주행 중"></div>
+    </div>
+
+    <div class="st">
+      <div class="n"></div>
+      <div>
+        <h4>중간 하차 — 내리는 순간 확정</h4>
+        <dl class="kv">
+          <dt>사용자</dt><dd>정차 후 내리는 사람 이름을 누른다. 내리는 사람이 QR을 폰으로 찍는다</dd>
+          <dt>앱</dt><dd>그 사람이 탄 구간만큼의 금액·함께 탄 거리·내 몫 전기량을 보여 주고 확정한다. 남은 사람 정산에는 영향이 없다</dd>
+          <dt>데이터·SDK</dt><dd>정차 판단(차속·기어) · 구간별 실측 에너지</dd>
+          <dt>해결</dt><dd>"먼저 내린 사람은 얼마?"를 그 자리에서 끝낸다</dd>
+        </dl>
+      </div>
+        <div class="st-shot stack"><img src="img/dropoff.jpg" alt="하차 정산 QR"><img src="img/stopped.jpg" alt="하차 후 남은 사람 금액"></div>
+    </div>
+
+    <div class="st">
+      <div class="n"></div>
+      <div>
+        <h4>중간 탑승 — 지금부터만 나눠 낸다</h4>
+        <dl class="kv">
+          <dt>사용자</dt><dd>정차 중 "+ 동승자 추가"를 누르고 이름을 말한다 (최대 5명)</dd>
+          <dt>앱</dt><dd>새 구간을 시작해, 새로 탄 사람은 지금부터 함께 탄 구간만 낸다</dd>
+          <dt>해결</dt><dd>도중에 태운 사람도 공정하게</dd>
+        </dl>
+      </div>
+        <div class="st-shot"><img src="img/addpassenger.jpg" alt="동승자 추가"></div>
+    </div>
+
+    <div class="st">
+      <div class="n"></div>
+      <div>
+        <h4>도착 — 정산 완료와 공유</h4>
+        <dl class="kv">
+          <dt>사용자</dt><dd>정차 후 "여행 종료". 동승자는 QR을 찍어 내 몫을 고르고 <strong>금액 복사</strong> → 쓰던 송금 앱에 붙여 넣는다</dd>
+          <dt>앱</dt><dd>총액·실측 전비, 사람별 금액, 구간별 내역(실측/추정 표시), 지나온 길(실제 도로 경로와 하차 지점)을 보여 준다. 이름을 누르면 사람별 정산서와 개인 QR</dd>
+          <dt>데이터·SDK</dt><dd>구간별 실측 기록 · GPS 경로 · NaviHelper 주소(지명) · 정적 웹 정산서(정산 내용은 URL # 뒤에만, 서버 저장 없음)</dd>
+          <dt>해결</dt><dd>며칠 뒤 운전자가 계산·청구하던 일이 사라진다</dd>
+        </dl>
+      </div>
+        <div class="st-shot"><img src="img/result.jpg" alt="정산 완료"></div>
+    </div>
+  </div>
+
+  <h3>솔로 모드 — 매일 여는 이유</h3>
+  <p>혼자 운전할 때는 같은 실측 데이터로 <strong>구간별 실제 전비·연비, 비용, 평균 속도, 정차 비율</strong>을 보여 주고, 공인 효율 대비 점수와 "가장 효율이 낮았던 구간"을 알려 준다.
+  구간은 정차·도로 유형·지역 변화로 자동으로 나뉜다.</p>
+  <div class="shots2">
+    <div class="shot-wrap"><img class="shot" src="img/solo_live.jpg" alt="솔로 주행 중"><div class="cap">주행 중 — 시내 구간 뒤 고속 구간으로 바뀌자 구간 2가 자동으로 시작됨</div></div>
+    <div class="shot-wrap"><img class="shot" src="img/solo_report.jpg" alt="운전 리포트"><div class="cap">운전 리포트 — 실제 전비 4.4km/kWh, 공인 대비 88%, 구간별 소모·비용·평균 속도·정차 비율</div></div>
+  </div>
+
+  <h3>주행 중 / 정차 중 기능 구분</h3>
+  <div class="tw"><table>
+    <tr><th style="width:30%">기능</th><th class="c" style="width:15%">주행 중</th><th class="c" style="width:15%">정차 중</th><th>이유</th></tr>
+    <tr><td>실시간 금액·거리·소모량 보기</td><td class="c">●</td><td class="c">●</td><td>보기만, 조작 없음</td></tr>
+    <tr><td>하차 정산 · QR</td><td class="c">—</td><td class="c">●</td><td>실제로 내리는 순간은 정차 중</td></tr>
+    <tr><td>동승자 추가(음성)</td><td class="c">—</td><td class="c">●</td><td>입력이 필요한 조작</td></tr>
+    <tr><td>여행 종료 · 결과 확인</td><td class="c">—</td><td class="c">●</td><td>결과 화면은 정보량이 많음</td></tr>
+    <tr><td>기록(백그라운드)</td><td class="c">●</td><td class="c">●</td><td>포그라운드 서비스가 자동 기록, 시동 OFF/ON 후 자동 재개</td></tr>
+  </table></div>
+</section>
+
+<!-- ⑤ -->
+<section>
+  <h2><span class="num">⑤</span>Pleos 기술 구현 및 검증</h2>
+  <p>모든 차량 값은 <strong>실제 Pleos SDK</strong>로 받는다. 앱 코드에 가짜(시뮬레이션) 데이터 구현이 없고, 에뮬레이터 입력은 Virtual Console과 별도 도구로만 흉내 낸다(자동 검사로 강제).</p>
+
+  <div class="tw"><table>
+    <tr><th style="width:23%">기능</th><th style="width:33%">사용 기술</th><th style="width:13%">상태</th><th>검증</th></tr>
+    <tr><td>전기 소모량 실측</td><td>Vehicle SDK <code>EvBattery.registerEvBatteryLevel</code> (kWh)</td><td><span class="tag done">구현 완료</span></td><td>Virtual Console 주행 → 앱 실측 표시 확인</td></tr>
+    <tr><td>주행거리</td><td>Vehicle SDK <code>Odometer.registerDistanceDriven</code> (멈춰 있으면 차속 적분으로 대체)</td><td><span class="tag done">구현 완료</span></td><td>에뮬레이터 주행, 단위 테스트</td></tr>
+    <tr><td>정차 판단</td><td>Vehicle SDK <code>Gear.registerGearSelection</code> + AAOS <code>PERF_VEHICLE_SPEED</code></td><td><span class="tag done">구현 완료</span></td><td>주행 중 버튼 잠금·정차 시 해제 확인</td></tr>
+    <tr><td>연료 소모량 실측</td><td>Vehicle SDK <code>Fuel.registerFuelPercent</code> × AAOS <code>INFO_FUEL_CAPACITY</code></td><td><span class="tag proto">프로토타입</span></td><td>에뮬레이터가 전기차라 단위 테스트로만 검증. 실차 확인 필요</td></tr>
+    <tr><td>차종 판별</td><td>배터리+연료 → 하이브리드 / 배터리만 → 전기 / 연료만 → 휘발유 (경유는 사용자 선택)</td><td><span class="tag done">구현 완료</span></td><td>전기차 에뮬레이터 판별, 하이브리드 등은 단위 테스트</td></tr>
+    <tr><td>지명·지역 구간 분할</td><td>NaviHelper <code>getCurrentLocationInfo</code> (주소) + GPS 경로</td><td><span class="tag proto">프로토타입</span></td><td>주소 수신 확인. 에뮬레이터 내비 위치가 고정이라 지역 변경 분할은 실차 검증 필요</td></tr>
+    <tr><td>이름 음성 입력</td><td>SpeechToText SDK (ON_DEVICE)</td><td><span class="tag done">구현 완료</span></td><td>에뮬레이터 마이크로 입력 확인</td></tr>
+    <tr><td>오늘 유가</td><td>Netlify Function → 오피넷 전국 평균(휘발유·경유), CDN 3시간 캐시, API 키는 서버에만</td><td><span class="tag done">구현 완료</span></td><td>11/10 기준 휘발유 1,855원/L 수신 확인</td></tr>
+    <tr><td>충전 단가</td><td>환경부 공용 급속(100kW 이상) 고시 347.2원/kWh, 출발 화면에서 수정 가능</td><td><span class="tag proto">프로토타입</span></td><td>최신 고시 확인 후 갱신 필요</td></tr>
+    <tr><td>구간별 정산 · 하차 확정</td><td>순수 Kotlin 도메인 계산 (1원 단위)</td><td><span class="tag done">구현 완료</span></td><td>단위 테스트(정산·하차·중간 탑승)</td></tr>
+    <tr><td>시동 OFF/ON 이어하기</td><td>진행 중 여행을 원자적 파일로 저장 + 부팅 리시버, 꺼진 동안 거리는 주행거리계로 보정</td><td><span class="tag done">구현 완료</span></td><td>에뮬레이터 재부팅 후 여행·하차 금액 유지 확인</td></tr>
+    <tr><td>정산 공유</td><td>QR → 정적 웹 정산서(URL 해시), 금액 복사</td><td><span class="tag done">구현 완료</span></td><td>배포된 정산서 페이지에서 금액 복사 확인</td></tr>
+    <tr><td>솔로 자동 구간 · 리포트</td><td>정차 2분 / 도로 유형 전환 2분 / 지역 변경</td><td><span class="tag done">구현 완료</span></td><td>단위 테스트, 에뮬레이터 주행</td></tr>
+    <tr><td>하차 금액 음성 안내</td><td>TextToSpeech SDK</td><td><span class="tag plan">개발 예정</span></td><td>2차 PT 전 추가</td></tr>
+    <tr><td>순간 연비 기반 구간 실측</td><td>Vehicle SDK 순간 연비</td><td><span class="tag plan">개발 예정</span></td><td>단위·실차 확인 필요</td></tr>
+  </table></div>
+
+  <h3>측정 정확도를 지키는 규칙</h3>
+  <ul>
+    <li><strong>값의 출처 우선순위:</strong> 차량 실측 잔량 변화 → (값이 없을 때만) 공인 효율 추정. 추정 구간은 화면에 "추정"으로 표시한다.</li>
+    <li><strong>연료 잔량 해상도:</strong> 연료 게이지는 짧은 구간에서 오차가 커서 20km 이상 구간에서만 잔량 변화를 쓴다. 배터리는 kWh 단위로 충분히 세밀해 제한이 없다.</li>
+    <li><strong>시간 기준:</strong> 샘플 간격은 시계 변경에 영향받지 않는 단조 시계(elapsedRealtime)로 잰다.</li>
+    <li><strong>네트워크 없이도 정산:</strong> 계산은 모두 차 안에서. 가격은 마지막으로 받은 값을 날짜와 함께 쓰고, 정산서 QR은 서버 없이 열린다.</li>
+  </ul>
+
+  <h3>구조</h3>
+  <div class="grid2">
+<div class="arch">:app   Compose 화면 · 포그라운드 서비스 · 부팅 리시버
+  │
+  ├─▶ :pleos  Vehicle · NaviHelper · SpeechToText 어댑터
+  ├─▶ :data   여행 기록(Room) · 가격 API · 진행 중 여행 파일
+  └─▶ :domain 정산 규칙 · 구간 기록 · 여행 진행 (순수 Kotlin)</div>
+    <div>
+      <ul class="small" style="margin:0">
+        <li>정산·구간 규칙은 Android와 분리된 순수 Kotlin 모듈 → <strong>단위 테스트 46개</strong>로 검증</li>
+        <li>모듈 의존 방향·이름 규칙·가짜 데이터 금지를 자동 검사(커밋 훅)로 강제</li>
+        <li>SDK 호출·파일·네트워크는 IO 스레드, 메인 스레드 차단 없음</li>
+        <li>권한: CAR_DRIVE · CAR_ENERGY · NAVI_ROUTE · STT_SERVICE · CAR_SPEED · 위치 · 마이크</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ⑥ -->
+<section>
+  <h2><span class="num">⑥</span>사업성 및 성장 전략</h2>
+
+  <div class="tw"><table>
+    <tr><th style="width:18%">항목</th><th>전략</th></tr>
+    <tr><td><strong>최초 타깃</strong></td><td>Pleos Connect 탑재 차량 운전자 중 <strong>동승 이동이 잦은 사람</strong> — 주말 여행·레저, 출퇴근 카풀. 전기차는 영수증이 없어 문제가 더 커서 첫 공략 대상</td></tr>
+    <tr><td><strong>사용자 확보</strong></td><td>App Market에서 "기름값 나누기"라는 분명한 쓸모로 발견. <strong>동승자 QR이 확산 경로</strong> — 정산서를 받은 동승자가 앱 이름을 보고, 자기 차가 Pleos면 설치한다 (동승자는 설치 없이 결과를 받으므로 진입 장벽 없음)</td></tr>
+    <tr><td><strong>이용 빈도</strong></td><td>정산 모드: 동승 이동마다(여행은 월 단위, 카풀은 주 단위로 가정). 솔로 모드: <strong>매 운전</strong> — 리텐션을 받치는 일상 기능</td></tr>
+    <tr><td><strong>리텐션</strong></td><td>솔로 모드의 운전 효율 기록·리포트, 지난 정산 기록과 사람별 정산서 다시 보기. 카풀은 같은 멤버가 반복되어 습관화</td></tr>
+    <tr><td><strong>확장</strong></td><td>① 카셰어링·렌터카: 공유 차량에서 여러 사람이 나눠 타는 비용 정산 ② 법인차·출장: 업무 주행 실측 비용 리포트 ③ 통행료·주차비 등 이동 비용 전체로 정산 범위 확대 ④ 충전·주유 제휴</td></tr>
+    <tr><td><strong>수익 모델</strong></td><td>초기에는 무료로 사용자·리텐션 검증에 집중. 이후 <strong>법인 주행비 리포트(구독)</strong>와 <strong>카셰어링 B2B 연동</strong>을 우선 검토. 개인 사용자 유료화는 하지 않는다</td></tr>
+  </table></div>
+
+  <h3>예상 MAU — 가정 기반 시나리오</h3>
+  <div class="formula">예상 MAU = 도달 가능 고객 × 설치 전환율 × 월간 활성화율</div>
+  <div class="tw"><table>
+    <tr><th>Pleos Connect 탑재 차량 10만 대당</th><th class="r">설치 전환율</th><th class="r">월간 활성화율</th><th class="r">MAU</th></tr>
+    <tr><td>보수</td><td class="r">3%</td><td class="r">40%</td><td class="r">1,200</td></tr>
+    <tr><td>기본</td><td class="r">5%</td><td class="r">50%</td><td class="r">2,500</td></tr>
+    <tr><td>낙관</td><td class="r">8%</td><td class="r">60%</td><td class="r">4,800</td></tr>
+  </table></div>
+  <p class="caption">모든 비율은 검증 전 <strong>가정</strong>이다. 탑재 차량 수는 공개 수치가 확인되면 곱해 쓴다. 월간 활성화율은 솔로 모드(매 운전 사용)가 받친다는 전제이며, 출시 후 실제 지표로 교체한다.</p>
+
+  <div class="box soft">
+    <div class="label">핵심 지표 (출시 후 측정)</div>
+    <p class="small" style="margin:0">정산 완료 여행 수 · 여행당 동승자 수 · QR 스캔률(동승자 도달) · 솔로 모드 주간 사용 일수 · 30일 리텐션</p>
+  </div>
+</section>
+
+<!-- ⑦ -->
+<section>
+  <h2><span class="num">⑦</span>리스크와 개발 로드맵</h2>
+  <div class="tw"><table>
+    <tr><th style="width:26%">리스크</th><th>대응</th></tr>
+    <tr><td>차종별 데이터 차이 (연료 게이지 해상도)</td><td>짧은 구간은 공인 연비 추정 + "추정" 표시. 순간 연비 활용 검토</td></tr>
+    <tr><td>휘발유·하이브리드 실측 미검증</td><td>에뮬레이터가 전기차라 단위 테스트로 검증. 실차 테스트 기회 확보 시 우선 확인</td></tr>
+    <tr><td>충전 단가가 실제와 다름 (집·완속·급속)</td><td>출발 화면에서 단가 직접 수정. 최신 환경부 고시로 갱신</td></tr>
+    <tr><td>네트워크 단절</td><td>정산은 오프라인 계산, 가격은 마지막 값(날짜 표시), QR 정산서는 서버 불필요</td></tr>
+    <tr><td>개인정보</td><td>이름·금액은 QR URL의 # 뒤에만 있고 서버에 저장하지 않음. 경로는 기기 안에만 저장</td></tr>
+    <tr><td>운전자 주의 분산</td><td>주행 중 조작 잠금, 음성 입력, 정차 중에만 승하차 처리</td></tr>
+    <tr><td>데려다주기(우회 운전) 비용</td><td>현재는 실제 탄 구간만 나눈다. 내려 준 뒤 돌아오는 거리를 어떻게 나눌지는 정책 결정 후 반영</td></tr>
+  </table></div>
+
+  <div class="tw"><table>
+    <tr><th style="width:22%">시점</th><th>범위</th></tr>
+    <tr><td><strong>1차 제출 (11/15)</strong></td><td>정산 모드(구간별 실측 정산·하차 확정·중간 탑승·QR 공유), 솔로 모드, 시동 OFF/ON 이어하기, 음성 이름 입력, 오늘 유가 — <strong>구현·에뮬레이터 검증 완료</strong>. 시연 영상과 GitHub(APK·실행 방법) 함께 제출</td></tr>
+    <tr><td><strong>2차 PT (12/3~4)</strong></td><td>TTS 하차 금액 안내, 충전 단가 최신화, 데려다주기 정책 반영 여부 결정, 시연 시나리오 고정(본 문서 ④와 동일)</td></tr>
+    <tr><td><strong>이후</strong></td><td>순간 연비 기반 실측, 법인 주행비 리포트, 카셰어링 연동, 통행료 등 이동 비용 확대</td></tr>
+  </table></div>
+
+  <h3>심사 기준 매핑</h3>
+  <div class="tw"><table>
+    <tr><th style="width:18%">심사 항목</th><th>이 기획서의 근거</th></tr>
+    <tr><td>차량 특화성</td><td>③ 금액이 차량 실측 데이터 없이는 성립하지 않음 · 주행/정차별 경험 · 시동 OFF/ON 이어하기</td></tr>
+    <tr><td>창의성</td><td>③ 정산 단위를 "총액"에서 "탑승 구간"으로 · 하차 순간 확정 · 설치 없는 동승자 QR</td></tr>
+    <tr><td>기술 활용성</td><td>⑤ Vehicle·NaviHelper·SpeechToText SDK 실제 연동, 구현 상태 3단계 구분, 단위 테스트 46개, 에뮬레이터 시연 화면</td></tr>
+    <tr><td>사업성</td><td>⑥ 동승자 QR 확산 경로 · 솔로 모드 리텐션 · 가정 기반 MAU · 법인/카셰어링 확장</td></tr>
+  </table></div>
+  <p class="footer-note">본 문서의 화면은 모두 Pleos Connect 에뮬레이터(v2.1, 아이오닉 5)에서 실제 Pleos SDK로 받은 값으로 찍었다. 시장 규모·전환율 등 수치는 "가정"으로 표시했으며 출처 없는 수치를 사실로 쓰지 않았다.</p>
+</section>
+
+</article>
+  <article id="view-guideline" hidden>
+
+<div class="cover">
+  <div class="top">2026 현대자동차그룹 차량용 앱 개발 공모전 · Code your App into Pleos App Market</div>
+  <div>
+    <div class="title">기획서 작성 가이드라인</div>
+    <div class="sub">1차 서류심사를 통과하는 기획서의 구조와 섹션별 작성 기준</div>
+    <div class="bar"></div>
+    <p class="lead" style="max-width:150mm">
+      이 문서는 공식 심사 기준(차량 특화성·창의성·기술 활용성·사업성)을 기준으로,
+      기획서의 각 칸에 <strong>무엇을, 어느 비중으로, 어떤 근거와 함께</strong> 써야 하는지 정리한 작성 기준입니다.
+      공식 접수양식을 대체하는 목차가 아니라, 공식 문항에 내용을 배치하기 위한 설계안입니다.
+    </p>
+  </div>
+  <table class="meta-table">
+    <tr><td>적용 대상</td><td>AUTONOMICS 기획서 (같은 공모전의 다른 앱에도 적용 가능)</td></tr>
+    <tr><td>기획서 제출</td><td>2026.11.15(일)</td></tr>
+    <tr><td>1차 결과 발표</td><td>2026.11.23(월)</td></tr>
+    <tr><td>2차 PT·시연</td><td>2026.12.03 ~ 12.04</td></tr>
+    <tr><td>최종 발표</td><td>2026.12.18(금)</td></tr>
+  </table>
+</div>
+
+<section>
+  <h2><span class="num">01</span>심사위원이 확인하려는 것</h2>
+  <p>
+    이번 공모전은 "기술적으로 잘 만든 앱"보다 <strong>자동차에서 써야 할 분명한 이유가 있고, 실제 서비스로 자랄 수 있는 앱</strong>인지를 봅니다.
+    투자 유치용 사업계획서와 목적이 다르므로 구성도 달라야 합니다.
+  </p>
+  <div class="tw"><table>
+    <tr><th style="width:22%">공식 평가 항목</th><th>심사위원의 질문</th><th class="r" style="width:20%">권장 작성 비중</th></tr>
+    <tr><td><strong>차량 특화성</strong></td><td>왜 스마트폰이 아니라 자동차에서 써야 하는가?</td><td class="r"><strong>30%</strong></td></tr>
+    <tr><td><strong>창의성</strong></td><td>어떤 고객 문제를 기존과 다른 방식으로 푸는가?</td><td class="r"><strong>25%</strong></td></tr>
+    <tr><td><strong>기술 활용성</strong></td><td>Pleos SDK로 실제로 구현할 수 있는가?</td><td class="r"><strong>25%</strong></td></tr>
+    <tr><td><strong>사업성</strong></td><td>실제 이용자가 생기고 서비스가 지속될 수 있는가?</td><td class="r"><strong>20%</strong></td></tr>
+  </table></div>
+  <div class="weights">
+    <div style="width:30%;background:#277BBD"></div><div style="width:25%;background:#46A3B8"></div>
+    <div style="width:25%;background:#7B85CD"></div><div style="width:20%;background:#C69B62"></div>
+  </div>
+  <p class="caption">공식 세부 배점은 비공개입니다. 30:25:25:20은 작성 우선순위를 정하기 위한 전략적 비중이며, 차량 특화성과 창의성에 설득의 55%를 집중합니다.</p>
+
+  <div class="box accent">
+    <div class="label">기획서가 답해야 하는 4가지 질문</div>
+    <ol style="margin:0">
+      <li>이 문제는 <strong>어떤 운전자·동승자가, 어떤 순간에</strong> 겪는가?</li>
+      <li>이 앱이 <strong>차량 환경에서만</strong> 줄 수 있는 가치는 무엇인가?</li>
+      <li>Pleos로 <strong>실제로 작동하게</strong> 만들 수 있는가? (이미 작동하는가?)</li>
+      <li>차를 타는 고객이 <strong>계속 쓸 이유</strong>는 무엇인가?</li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">02</span>제출물의 성격</h2>
+  <ul>
+    <li><strong>공식 접수양식 자체가 기획서</strong>입니다. 별도 자유양식 문서는 필수가 아닙니다.</li>
+    <li>시연 영상·GitHub 저장소(APK)는 선택 제출물이며, 구현 산출물에는 <strong>가산점</strong>이 있습니다.</li>
+    <li>FAQ 기준 5번 문항이 개발 계획이며, <strong>Pleos SDK/API 활용 계획을 구체적으로</strong> 쓰도록 되어 있습니다.</li>
+    <li>공식 양식에 페이지 제한이 없다면 아래 7개 항목을 <strong>5~7쪽 분량</strong>으로 압축합니다.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="num">03</span>논리 흐름과 전체 구조</h2>
+  <div class="flow">
+    <div class="step"><b>문제 정의</b><span>WHY<br>누가·언제·왜 불편한가</span></div><div class="arrow">→</div>
+    <div class="step"><b>차량 특화 가치</b><span>WHY CAR<br>왜 자동차여야 풀리는가</span></div><div class="arrow">→</div>
+    <div class="step"><b>솔루션·경험</b><span>WHAT<br>어떤 기능·흐름으로 푸는가</span></div><div class="arrow">→</div>
+    <div class="step"><b>기술 구현·검증</b><span>HOW<br>Pleos에서 어떻게 동작하나</span></div><div class="arrow">→</div>
+    <div class="step"><b>사업성·확장</b><span>IMPACT<br>얼마나 많이·자주 쓰나</span></div>
+  </div>
+  <div class="tw"><table>
+    <tr><th style="width:38%">구성 항목</th><th class="r" style="width:16%">분량 비중</th><th style="width:16%">강조</th><th>주로 받치는 심사 항목</th></tr>
+    <tr><td>① 서비스 핵심 제안</td><td class="r">5%</td><td>높음</td><td>전체 (첫인상)</td></tr>
+    <tr><td>② 타깃 고객과 문제 정의</td><td class="r">15%</td><td>매우 높음</td><td>창의성 · 사업성</td></tr>
+    <tr><td>③ 차량 특화 가치와 차별성</td><td class="r">20%</td><td><span class="tag must">최우선</span></td><td>차량 특화성</td></tr>
+    <tr><td>④ 핵심 기능과 사용자 시나리오</td><td class="r">20%</td><td>매우 높음</td><td>창의성 · 차량 특화성</td></tr>
+    <tr><td>⑤ Pleos 기술 구현 및 검증</td><td class="r">20%</td><td><span class="tag must">최우선</span></td><td>기술 활용성</td></tr>
+    <tr><td>⑥ 사업성 및 성장 전략</td><td class="r">15%</td><td>높음</td><td>사업성</td></tr>
+    <tr><td>⑦ 리스크와 개발 로드맵</td><td class="r">5%</td><td>보통</td><td>기술 활용성 · 실현 가능성</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="num">04</span>섹션별 작성 기준</h2>
+
+  <div class="avoid">
+  <h3>① 서비스 핵심 제안 <span class="muted small">— 5%</span></h3>
+  <p>심사위원이 30초 안에 "무슨 앱인지" 이해하게 만드는 칸입니다.</p>
+  <div class="grid2">
+    <div class="box soft">
+      <div class="label">반드시 포함</div>
+      <ul style="margin:0">
+        <li>앱 이름 + 한 문장 서비스 정의</li>
+        <li>핵심 타깃 고객</li>
+        <li>해결하려는 문제</li>
+        <li>기존 방식 대비 차별점</li>
+        <li>대표 앱 화면 1장</li>
+      </ul>
+    </div>
+    <div class="box soft">
+      <div class="label">서비스 정의 문장 기준</div>
+      <p class="small" style="margin:0 0 1.5mm"><span class="tag plan">아쉬움</span> "차량 데이터와 AI로 다양한 기능을 제공하는 플랫폼" — 기능 나열, 상황·불편이 없음</p>
+      <p class="small" style="margin:0"><span class="tag done">좋음</span> "운전자가 휴대폰을 만지지 않고도, 차량 상황에 맞는 정보를 적절한 순간에 받는 서비스" — 언제 쓰고 무엇이 사라지는지 드러남</p>
+    </div>
+  </div>
+  </div>
+
+  <div class="avoid">
+  <h3>② 타깃 고객과 문제 정의 <span class="muted small">— 15%</span></h3>
+  <p>기능 설명보다 먼저 <strong>그 기능이 왜 필요한지</strong>를 증명합니다. 핵심은 <strong>문제가 실제로 존재한다는 증거</strong>입니다.</p>
+  <div class="tw"><table>
+    <tr><th style="width:20%">세부 항목</th><th>작성할 내용</th></tr>
+    <tr><td>고객 정의</td><td>연령 같은 인구통계보다 <strong>실제 이용 상황</strong> 기준으로 구체화</td></tr>
+    <tr><td>발생 상황</td><td>주행 중·정차 중·충전 중 등 문제가 생기는 순간</td></tr>
+    <tr><td>기존 불편</td><td>지금 고객이 이 문제를 푸는 방법과 그 한계</td></tr>
+    <tr><td>중요성</td><td>발생 빈도, 불편의 크기, 안전·시간·비용에 주는 영향</td></tr>
+    <tr><td>검증 근거</td><td>인터뷰·설문·관찰·공개 통계·사용성 테스트. <strong>출처를 밝힌다</strong></td></tr>
+  </table></div>
+  <p class="small muted">직접 조사한 인터뷰 5건이 출처 없는 대규모 시장 수치보다 설득력 있을 수 있습니다. 단, 5건을 전체 이용자 특성으로 일반화하지 않습니다.</p>
+  </div>
+
+  <div class="avoid">
+  <h3>③ 차량 특화 가치와 차별성 <span class="muted small">— 20% · 최우선</span></h3>
+  <p>"그냥 스마트폰 앱으로 만들면 되지 않나요?"에 반박할 수 있어야 합니다. 아래 비교표를 <strong>우리 앱 기준으로 다시</strong> 작성합니다.</p>
+  <div class="tw"><table>
+    <tr><th style="width:18%">비교 항목</th><th>스마트폰 앱</th><th>Pleos 차량용 앱</th></tr>
+    <tr><td>사용 맥락</td><td>사용자가 직접 앱 실행</td><td>주행·정차 등 차량 상황과 연계</td></tr>
+    <tr><td>데이터</td><td>휴대폰이 접근 가능한 정보 중심</td><td>차량 상태 데이터와 연계</td></tr>
+    <tr><td>조작 방식</td><td>터치 중심</td><td>차량 화면 + 음성 인터페이스</td></tr>
+    <tr><td>서비스 가치</td><td>개인 단말 중심 경험</td><td>이동 상황에 맞춘 맥락형 경험</td></tr>
+  </table></div>
+  <div class="box accent">
+    <div class="label">이 섹션의 3가지 핵심 질문 — 명확히 답하지 못하면 기능이 많아도 특화성 입증이 어렵습니다</div>
+    <ol style="margin:0">
+      <li>차량 데이터가 없으면 핵심 기능의 가치가 얼마나 떨어지는가?</li>
+      <li>주행·정차 상태에 따라 사용자 경험이 달라지는가?</li>
+      <li>운전자의 주의 분산을 최소화하면서 가치를 주는가?</li>
+    </ol>
+  </div>
+  </div>
+
+  <div class="avoid">
+  <h3>④ 핵심 기능과 사용자 시나리오 <span class="muted small">— 20%</span></h3>
+  <p>기능 10개를 나열하지 말고, <strong>대표 시나리오 하나를 처음부터 끝까지</strong> 보여줍니다. 실제 화면 캡처 3~5장을 씁니다.</p>
+  <div class="flow">
+    <div class="step"><b>1</b><span>차량 이용 상황 진입</span></div><div class="arrow">→</div>
+    <div class="step"><b>2</b><span>차량·사용자 입력으로 정보 수집</span></div><div class="arrow">→</div>
+    <div class="step"><b>3</b><span>핵심 기능 실행·처리</span></div><div class="arrow">→</div>
+    <div class="step"><b>4</b><span>화면·음성으로 결과 제공</span></div><div class="arrow">→</div>
+    <div class="step"><b>5</b><span>문제 해결 확인</span></div>
+  </div>
+  <p>각 단계(화면)마다 <strong>사용자 행동 · 앱 반응 · 쓰인 차량 데이터/SDK · 해결되는 불편</strong> 네 가지를 함께 적고,
+  <strong>주행 중 가능한 기능과 정차 중에만 여는 기능</strong>을 분명히 나눕니다.</p>
+  </div>
+
+  <div class="avoid">
+  <h3>⑤ Pleos 기술 구현 및 검증 <span class="muted small">— 20% · 최우선</span></h3>
+  <p>클래스 다이어그램·디자인 패턴 설명은 후순위입니다. 심사위원이 보려는 것은 <strong>핵심 기능이 실제로 동작하느냐</strong>입니다.
+  공식 개발 환경에는 Vehicle, NaviHelper, FusedLocation, TextToSpeech, SpeechToText SDK 등이 안내되어 있습니다.</p>
+  <div class="tw"><table>
+    <tr><th>핵심 기능</th><th>필요 기술(SDK/API)</th><th>구현 상태</th><th>검증 방법</th></tr>
+    <tr><td>예) 차량 상태 인식</td><td>Vehicle SDK</td><td>상태 태그</td><td>에뮬레이터 테스트</td></tr>
+    <tr><td>예) 위치 기반 기능</td><td>NaviHelper / 위치</td><td>상태 태그</td><td>위치 변경 시나리오</td></tr>
+    <tr><td>예) 서비스 고유 기능</td><td>앱 로직 · 외부 API</td><td>상태 태그</td><td>실제 사용자 플로우</td></tr>
+  </table></div>
+  <div class="box soft">
+    <div class="label">구현 상태는 반드시 셋으로 구분</div>
+    <p style="margin:0"><span class="tag done">구현 완료</span> 실제 코드와 테스트 결과가 있는 기능 &nbsp;
+    <span class="tag proto">프로토타입</span> 시연은 되지만 환경·데이터가 제한된 기능 &nbsp;
+    <span class="tag plan">개발 예정</span> 기술 검증·개발이 남은 기능</p>
+    <p class="small muted" style="margin:1.5mm 0 0">끝내지 않은 기능을 구현했다고 쓰면 2차 시연에서 오히려 불리합니다.</p>
+  </div>
+  </div>
+
+  <div class="avoid">
+  <h3>⑥ 사업성 및 성장 전략 <span class="muted small">— 15%</span></h3>
+  <p>공식 기준에는 타깃 고객, 예상 MAU, Retention Rate, 사용자 확보·서비스 확대 가능성이 명시되어 있습니다. "수익 가능성"만이 아닙니다.</p>
+  <div class="tw"><table>
+    <tr><th style="width:20%">항목</th><th>핵심 내용</th></tr>
+    <tr><td>최초 타깃 시장</td><td>어떤 Pleos 지원 차량 이용자부터 공략할 것인가</td></tr>
+    <tr><td>사용자 확보</td><td>Pleos App Market에서 앱을 발견하고 설치할 이유</td></tr>
+    <tr><td>이용 빈도</td><td>일·주·월 또는 특정 차량 이용 상황별 빈도</td></tr>
+    <tr><td>리텐션</td><td>첫 사용 이후 다시 쓰는 계기</td></tr>
+    <tr><td>확장성</td><td>타깃·기능·제휴·적용 범위 확대</td></tr>
+    <tr><td>수익 모델</td><td>적합할 때만 현실적인 모델. 억지로 만들지 않는다</td></tr>
+  </table></div>
+  <div class="formula">예상 MAU = 도달 가능 고객 × 설치 전환율 × 월간 활성화율</div>
+  <p class="small muted">확인하지 못한 시장 규모·전환율은 사실처럼 쓰지 않고 <strong>"가정"으로 표시한 시나리오</strong>로 제시합니다.</p>
+  </div>
+
+  <div class="avoid">
+  <h3>⑦ 리스크와 개발 로드맵 <span class="muted small">— 5%</span></h3>
+  <p>현실적인 문제를 인정하고 대응을 보여줍니다. SDK/API 제약, 차량별 지원 차이, 네트워크, 개인정보, 운전자 주의 분산, 주행·정차별 기능 제한 등을 다루고,
+  <strong>1차 제출 시점과 2차 PT 시점의 구현 범위를 나눠</strong> 일정 현실성을 보입니다.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">05</span>작성 원칙</h2>
+  <div class="grid2">
+    <div class="box">
+      <div class="label">해야 할 것</div>
+      <ul style="margin:0">
+        <li>고객 문제 → 차량이어야 하는 이유 → 기능 → 구현 근거 순서로 쓴다</li>
+        <li>모든 기술 주장은 코드·테스트·시연으로 뒷받침한다</li>
+        <li>숫자에는 출처를, 추정에는 "가정" 표시를 붙인다</li>
+        <li>주행 중/정차 중 기능을 분리해 안전 설계를 드러낸다</li>
+        <li>핵심 가치 <strong>한 가지</strong>를 확실히 납득시킨다</li>
+      </ul>
+    </div>
+    <div class="box">
+      <div class="label">피할 것</div>
+      <ul style="margin:0">
+        <li>고객 문제를 정의하기 전에 기술 구조부터 설명하기</li>
+        <li>기능 목록을 길게 나열하기</li>
+        <li>출처 없는 시장 규모·만들어낸 수요 수치</li>
+        <li>미완성 기능을 "구현 완료"로 쓰기</li>
+        <li>스마트폰으로도 똑같이 되는 기능을 핵심으로 내세우기</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>개발 산출물과 기획서 연결</h3>
+  <div class="tw"><table>
+    <tr><th style="width:20%">산출물</th><th>담을 내용</th></tr>
+    <tr><td>기획서</td><td>고객 문제 → 해결 방식 → 실제 구현 근거</td></tr>
+    <tr><td>시연 영상</td><td>고객이 문제를 겪는 순간부터 해결 결과까지 <strong>하나의 시나리오</strong>로 60~90초 (권장)</td></tr>
+    <tr><td>GitHub 저장소</td><td>기능 구현 코드, APK, 실행 방법, 테스트 환경, 제약사항</td></tr>
+  </table></div>
+  <p class="small muted">세 산출물이 서로 다른 이야기를 해서는 안 됩니다. 기획서의 대표 시나리오 = 시연 영상의 흐름 = 저장소 README의 재현 절차.</p>
+</section>
+
+<section>
+  <h2><span class="num">06</span>제출 전 자체 점검 7문항</h2>
+  <ul class="check">
+    <li>서비스를 읽고 30초 안에 어떤 앱인지 이해할 수 있는가?</li>
+    <li>해결할 문제가 실제 고객에게 존재한다는 근거가 있는가?</li>
+    <li>스마트폰 앱 대비 차량에서의 독자적 장점이 입증되는가?</li>
+    <li>대표 사용 시나리오가 시작부터 결과까지 완결되는가?</li>
+    <li>SDK 활용 방식과 구현 상태가 코드·시연물과 일치하는가?</li>
+    <li>예상 사용자 규모, 이용 빈도, 재방문 이유가 구체적인가?</li>
+    <li>운전 안전, 개인정보, 구현 제약에 대한 대응이 있는가?</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="num">07</span>남은 기간 작업 순서</h2>
+  <div class="tw"><table>
+    <tr><th style="width:14%">날짜</th><th>작업</th><th style="width:28%">산출물</th></tr>
+    <tr><td>11/10</td><td>코드 분석, 문제 정의, 심사 기준 매핑</td><td>기획서 뼈대</td></tr>
+    <tr><td>11/11</td><td>고객 문제와 차량 특화 가치 정리 (+ 지인 인터뷰)</td><td>핵심 설득 문안</td></tr>
+    <tr><td>11/12</td><td>대표 시나리오와 실제 화면 정리</td><td>서비스 플로우·화면</td></tr>
+    <tr><td>11/13</td><td>SDK 기술 근거, 사업성, 리스크</td><td>기획서 초안</td></tr>
+    <tr><td>11/14</td><td>시연 영상, 문서 검토, 서명·제출 준비</td><td>제출 가능 최종본</td></tr>
+    <tr><td>11/15</td><td>최종 제출 및 수신 확인</td><td>접수 완료</td></tr>
+  </table></div>
+  <div class="box dark">
+    <div class="label">한 줄 요약</div>
+    <p style="margin:0">1차 서류의 목표는 모든 기능을 설명하는 것이 아니라, <strong>핵심 가치 하나</strong>를
+    <strong>차량의 데이터·맥락</strong>과 묶어 스마트폰 앱과 구별하고, <strong>이미 동작하는 코드와 시연</strong>으로 아이디어가 아님을 보여주는 것입니다.</p>
+  </div>
+  <p class="footer-note">공식 일정·심사 항목은 appdevchallenge.auto-hmg.io 공지 기준. 작성 비중(30:25:25:20, 섹션별 %)은 공식 배점이 아닌 작성 전략입니다. 공식 접수양식(DOCX)의 실제 문항에 맞춰 이 구조를 배치하세요.</p>
+</section>
+
+</article>
+</div>
+<script>
+(function () {
+  function show() {
+    var v = location.hash === '#guideline' ? 'guideline' : 'proposal';
+    document.getElementById('view-proposal').hidden = v !== 'proposal';
+    document.getElementById('view-guideline').hidden = v !== 'guideline';
+    document.querySelectorAll('nav.tabs a').forEach(function (a) {
+      if (a.dataset.view === v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  }
+  window.addEventListener('hashchange', function () { show(); window.scrollTo(0, 0); });
+  show();
+
+  var msg = document.getElementById('dl-msg');
+  var buttons = document.querySelectorAll('.dl button');
+  var downloadsPromise = window.claude && window.claude.use ? window.claude.use('downloads') : Promise.resolve(null);
+  buttons.forEach(function (b) {
+    b.addEventListener('click', async function () {
+      msg.textContent = 'PDF를 준비하는 중…';
+      try {
+        var downloads = await downloadsPromise;
+        if (!downloads) { msg.textContent = '이 화면에서는 저장할 수 없어요. claude.ai에서 이 페이지를 열어 주세요.'; return; }
+        var res = await fetch(b.dataset.src);
+        if (!res.ok) throw { code: 'fetch', message: String(res.status) };
+        var blob = await res.blob();
+        var r = await downloads.save({ filename: b.dataset.name, data: blob });
+        msg.textContent = r.status === 'saved' ? b.dataset.name + ' 저장을 시작했어요.' : '';
+      } catch (e) {
+        var code = e && e.code;
+        msg.textContent = code === 'declined' ? '저장을 취소했어요.'
+          : code === 'rate_limited' ? '잠시 후 다시 눌러 주세요.'
+          : '저장하지 못했어요 (' + (code || '알 수 없는 오류') + ').';
+      }
+    });
+  });
+})();
+</script>
