@@ -88,7 +88,7 @@
 | 주행 재현 도구 | Python 3 (추가 패키지 없음), `adb` |
 | 네트워크 | 오늘 단가 조회와 동승자 정산 페이지에 필요. 없으면 내장 기본 단가를 씁니다 |
 
-실차에서는 확인하지 못했습니다. 모든 확인은 에뮬레이터에서 했습니다.
+실차에서는 확인하지 못했습니다. 모든 확인은 macOS에서 띄운 에뮬레이터로 했고, Windows용 명령은 실행해 보지 못했습니다.
 
 ## 실행 방법
 
@@ -108,10 +108,22 @@ APK는 release 빌드이고, 바로 설치되도록 디버그 키로 서명했�
 
 에뮬레이터는 Virtual Console에서 속도를 올려도 주행거리와 배터리가 움직이지 않습니다. 주행 재현 도구를 켜 두면 속도에 맞춰 GPS, 누적 주행거리, 배터리가 함께 움직입니다. 경로는 강남역에서 경부고속도로를 따라가는 실제 도로(OpenStreetMap)입니다.
 
+macOS · Linux:
+
 ```bash
 adb forward tcp:8088 tcp:8088          # Virtual Console: http://localhost:8088
-ADB=$(which adb) python3 tools/emulator_drive.py
+ADB=adb python3 tools/emulator_drive.py
 ```
+
+Windows (PowerShell):
+
+```powershell
+adb forward tcp:8088 tcp:8088          # Virtual Console: http://localhost:8088
+$env:ADB = "adb"
+python tools\emulator_drive.py
+```
+
+`adb`가 PATH에 없으면 `ADB`에 전체 경로를 넣습니다(Windows 기본 위치: `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`).
 
 ### 3. 시연 영상과 같은 흐름 재현
 
@@ -128,12 +140,27 @@ ADB=$(which adb) python3 tools/emulator_drive.py
 
 ### 4. 소스에서 빌드
 
+JDK 17이 필요합니다. 아래는 Android Studio에 들어 있는 JDK를 쓰는 방법이고, 경로는 기본 설치 위치 기준입니다.
+
+macOS:
+
 ```bash
-export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"   # macOS 기준
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ./gradlew :domain:test          # 정산·구간 기록 규칙 단위 테스트
 ./gradlew :app:installDebug     # 에뮬레이터에 설치
 ./gradlew :app:assembleRelease  # app/build/outputs/apk/release/
 ```
+
+Windows (PowerShell):
+
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+.\gradlew.bat :domain:test          # 정산·구간 기록 규칙 단위 테스트
+.\gradlew.bat :app:installDebug     # 에뮬레이터에 설치
+.\gradlew.bat :app:assembleRelease  # app\build\outputs\apk\release\
+```
+
+Android Studio로 프로젝트를 열어 실행하면 운영체제와 상관없이 위 설정 없이 빌드됩니다.
 
 - `local.properties`에 `sdk.dir`(Android SDK 경로)이 필요합니다. Android Studio로 열면 자동으로 만들어집니다.
 - Pleos SDK는 `settings.gradle.kts`에 적힌 Pleos Playground Maven 저장소에서 받습니다.
